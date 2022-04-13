@@ -26,7 +26,7 @@ make init-terraform
 make setup-eks-cluster
 ```
 
-# GET and Configure kubectl
+# GET and Configure kubeconfig
 ```
 make get-kubeconfig
 ```
