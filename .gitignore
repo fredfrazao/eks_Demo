@@ -1,0 +1,16 @@
+
+.terraform/modules/eks/
+.terraform/modules/modules.json
+.terraform/modules/vpc/
+.terraform/providers/registry.terraform.io/hashicorp/aws/4.9.0/darwin_amd64/terraform-provider-aws_v4.9.0_x5
+.terraform/providers/registry.terraform.io/hashicorp/cloudinit/2.2.0/darwin_amd64/terraform-provider-cloudinit_v2.2.0_x5
+.terraform/providers/registry.terraform.io/hashicorp/kubernetes/2.10.0/darwin_amd64/terraform-provider-kubernetes_v2.10.0_x5
+.terraform/providers/registry.terraform.io/hashicorp/local/2.1.0/darwin_amd64/terraform-provider-local_v2.1.0_x5
+.terraform/providers/registry.terraform.io/hashicorp/null/3.1.0/darwin_amd64/terraform-provider-null_v3.1.0_x5
+.terraform/providers/registry.terraform.io/hashicorp/random/3.1.0/darwin_amd64/terraform-provider-random_v3.1.0_x5
+.terraform/providers/registry.terraform.io/terraform-aws-modules/http/2.4.1/darwin_amd64/CHANGELOG.md
+.terraform/providers/registry.terraform.io/terraform-aws-modules/http/2.4.1/darwin_amd64/LICENSE
+.terraform/providers/registry.terraform.io/terraform-aws-modules/http/2.4.1/darwin_amd64/README.md
+.terraform/providers/registry.terraform.io/terraform-aws-modules/http/2.4.1/darwin_amd64/terraform-provider-http_v2.4.1
+.terraform.lock.hcl
+Pipfile.lock
