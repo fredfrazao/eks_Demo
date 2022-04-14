@@ -85,6 +85,7 @@ jobs:
         aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
         aws-secret-access-key: ${{ secrets.AWSACCESSKEYID }}
         aws-region: us-west-2
+        role-to-assume: fred-k8s-Jk7Z4rac20220414144752749600000003
 
 
     # Generates an execution plan for Terraform
