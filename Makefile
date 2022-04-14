@@ -66,7 +66,7 @@ setup-eks-cluster:  ## Setup eks cluster
 
 destroy-eks-cluster:  ## destroy eks cluster
 	terraform init 
-	terraform dest
+	terraform destroy -auto-approve 
 
 get-kubeconfig:  ## get kubeconfig and update ./kube
 	aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) 
