@@ -28,7 +28,7 @@ make setup-eks-cluster
 
 # GET and Configure kubeconfig
 ```
-make get-kubeconfig
+aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) 
 ```
 
 # Destroy an EKS Cluster
