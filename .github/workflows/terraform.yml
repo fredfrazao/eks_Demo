@@ -80,8 +80,8 @@ jobs:
        
     - name: aws key
       run: |
-        export AWSSecretKey={{ secrets.AWSSecretKey }}
-        export AWSAccessKeyId={{ secrets.AWSAccessKeyId }}
+        export AWSSecretKey= "${{ secrets.AWSACCESSKEYID }}"
+        export AWSAccessKeyId="${{ secrets.AWSACCESSKEYID }}"
       
        
     # Checks that all Terraform configuration files adhere to a canonical format
