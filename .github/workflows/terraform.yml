@@ -82,7 +82,8 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
-        aws-secret-access-key: ${{ secrets.AWSACCESSKEYID }}      
+        aws-secret-access-key: ${{ secrets.AWSACCESSKEYID }}   
+        aws-region: us-east-2
        
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
