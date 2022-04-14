@@ -84,6 +84,8 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSACCESSKEYID }}
+        AWS_DEFAULT_REGION: us-east-1
+        AWS_DEFAULT_OUTPUT: json
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
