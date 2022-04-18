@@ -1,15 +1,17 @@
-name: 'Deploy eks' 
+name: 'ci-Terraform' 
 
-on: 
-  workflow_dispatch:
-
+on:
+  push:
+    branches:
+    - main
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
   terraform:
-    name: 'Deploy eks'
+    name: 'Ci Terraform'
     runs-on: ubuntu-latest
     environment: dev
 
@@ -27,6 +29,14 @@ jobs:
         terraform_version: 1.1.8
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         
-    - name: setup-eks-cluster
+    - name: Terraform Init
+      run: make init-terraform
+  
+    - name: Terraform Plan
+      run: make tf-plan
+
+    - name: Terraform Apply
       run: make setup-eks-cluster
 
+    - name: Terraform destroy
+      run: make destroy-eks-cluster

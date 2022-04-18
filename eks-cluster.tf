@@ -2,7 +2,7 @@ terraform {
   cloud {
     organization = "suxsox"
     workspaces {
-      name = "dev"
+      name = "prod"
     }
   }
   required_providers {

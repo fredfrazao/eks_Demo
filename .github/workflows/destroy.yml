@@ -11,7 +11,7 @@ jobs:
   terraform:
     name: 'destroy eks'
     runs-on: ubuntu-latest
-    environment: test
+    environment: dev
 
     defaults:
       run:
@@ -27,5 +27,6 @@ jobs:
         terraform_version: 1.1.8
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         
-    - name: destroy-eks-cluster
+
+    - name: Terraform destroy
       run: make destroy-eks-cluster

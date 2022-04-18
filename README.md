@@ -1,12 +1,12 @@
 
-[![ci-Terraform](https://github.com/fredfrazao/eks_Demo/actions/workflows/terraform.yml/badge.svg?event=deployment_status)](https://github.com/fredfrazao/eks_Demo/actions/workflows/terraform.yml)
 
 # Prerequisites
 ```
 - a AWS account 
 - a configured AWS CLI
 - AWS IAM Authenticator
-- kubectl
+- terraform >= 0.14
+- kubectl to interact with the elk 
 ```
 # config AWS CLI
 ```
@@ -17,7 +17,6 @@ Default region name [None]: YOUR_AWS_REGION
 Default output format [None]: json
 ```
 # Set up and initialize your workspace
-git clone https://github.com/fredfrazao/eks_Demo
 ```
 make init-terraform
 ```
@@ -27,7 +26,7 @@ make init-terraform
 make setup-eks-cluster
 ```
 
-# GET and Configure kubeconfig
+# Get and Configure kubeconfig
 ```
 aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) 
 ```
@@ -35,4 +34,9 @@ aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terr
 # Destroy an EKS Cluster
 ```
 make destroy-eks-cluster
+```
+
+# GitHub Actions Prerequisites
+```
+- terraform cloud account for the backend and the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in the workspace env.
 ```
