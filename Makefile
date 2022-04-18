@@ -54,6 +54,9 @@ play-dependencies: env pipenv-sync  ## dependencies when running ansible plays
 print-pass:
 	@pipenv run yq -r ".$(PASS)" $$(grep -ir "$(PASS): !vault" ansible/inventories/$(ENV) -l) | pipenv run ansible-vault decrypt --vault-password-file $(ANSIBLE_VAULT_PASSWORD_FILE) 2>/dev/null; echo
 
+tf-validate:  ##  Terraform and validate
+	 terraform validate
+
 
 init-terraform:  ## Setup Terraform and validate 
 	 terraform init 
@@ -62,7 +65,7 @@ init-terraform:  ## Setup Terraform and validate
 plan-terraform:  ## Setup Terraform and validate 
 	 terraform plan -input=false 
 	 
-setup-eks-cluster:  init-terraform plan-terraform ## Setup eks cluster
+setup-eks-cluster:  init-terraform tf-validate plan-terraform ## Setup eks cluster
 	 terraform apply  -auto-approve -input=false
 
 destroy-eks-cluster: init-terraform ## destroy eks cluster
