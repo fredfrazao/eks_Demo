@@ -1,0 +1,73 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'ceph.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "ceph.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: ceph.extra
+    rules:
+    - alert: CephPgsStuck
+      annotations:
+        description: This indicates there are pgs in a stuck state, manual intervention needed to resolve.
+        summary: PG(s) Stuck.
+      expr: max(ceph_osd_numpg) > scalar(ceph_pg_active)
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOsdHostLossCheck
+      annotations:
+        description: This indicates that the cluster @ 85% full is not enough to support the loss of the largest OSD host.
+        summary: OSD Host Loss Check.
+      expr: max(sum(ceph_osd_stat_bytes - ceph_osd_stat_bytes_used)) * 0.85 < scalar(max(sum by (instance) (ceph_osd_stat_bytes + on (ceph_daemon) group_left (instance) (ceph_disk_occupation*0))))
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephSlowOsdResponses
+      annotations:
+        description: This indicates that some OSD Latencies are above 1s.
+        summary: Slow OSD Responses.
+      expr: ((irate(node_disk_read_time_seconds_total[5m]) / clamp_min(irate(node_disk_reads_completed_total[5m]), 1) + irate(node_disk_write_time_seconds_total[5m]) / clamp_min(irate(node_disk_writes_completed_total[5m]), 1)) and on (instance, device) ceph_disk_occupation) > 1
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephNetworkErrors
+      annotations:
+        description: This indicates that more than 10 dropped/error packets are seen in a 5m interval.
+        summary: Network Errors.
+      expr: sum by (instance, device) (irate(node_network_receive_drop_total{device=~"(eth|en|bond|ib|mlx|p).*"}[5m]) + irate(node_network_receive_errs_total{device=~"(eth|en|bond|ib|mlx|p).*"}[5m]) + irate(node_network_transmit_drop_total{device=~"(eth|en|bond|ib|mlx|p).*"}[5m]) + irate(node_network_transmit_errs_total{device=~"(eth|en|bond|ib|mlx|p).*"}[5m])) > 10
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephPoolCapacityLow
+      annotations:
+        description: This indicates a low capacity in a pool.
+        summary: Pool Capacity Low.
+      expr: (ceph_pool_stored / (ceph_pool_stored + ceph_pool_max_avail) * 100 + on (pool_id) group_left (name) (ceph_pool_metadata*0)) > 75
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOsdsHighPgCount
+      annotations:
+        description: This indicates there are some OSDs with high PG count (275+).
+        summary: OSD(s) with High PG Count.
+      expr: ceph_osd_numpg > 275
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+{% endif %}

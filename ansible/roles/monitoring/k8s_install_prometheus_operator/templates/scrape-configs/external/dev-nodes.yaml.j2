@@ -1,0 +1,18 @@
+{% if prometheus_monitor_components.external.devNodes  %}
+  {% if groups['dev_env'] is defined and (groups['dev_env'] | length > 0) %}
+- job_name: 'dev-node-exporter'
+  honor_labels: true
+  static_configs:
+    - targets:
+    {% for host in groups['dev_env'] %}
+      - {{ hostvars[host].metrics_exporter_ip +":"+(node_exporter_port | string) }}
+    {% endfor %}
+- job_name: 'dev-libvirt-exporter'
+  honor_labels: true
+  static_configs:
+    - targets:
+    {% for host in groups['dev_env'] %}
+      - {{ hostvars[host].metrics_exporter_ip +":"+(libvirt_exporter_port | string) }}
+    {% endfor %}
+  {% endif %}
+{% endif %}

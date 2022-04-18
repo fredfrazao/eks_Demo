@@ -1,0 +1,67 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'cluster-state-alert.rules' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "cluster-state-alert.rules"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: cluster-state-alert.rules
+    rules:
+    - alert: CephClusterErrorState
+      annotations:
+        description: Storage cluster is in error state for more than 10m.
+        message: Storage cluster is in error state
+        severity_level: error
+        storage_type: ceph
+      expr: ceph_health_status{job="ceph-exporter"} > 1
+      for: 10m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephClusterWarningState
+      annotations:
+        description: Storage cluster is in warning state for more than 10m.
+        message: Storage cluster is in degraded state
+        severity_level: warning
+        storage_type: ceph
+      expr: ceph_health_status{job="ceph-exporter"} == 1
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDVersionMismatch
+      annotations:
+    {% raw %}
+        description: There are {{ $value }} different versions of Ceph OSD components running.
+    {% endraw %}
+        message: There are multiple versions of storage services running.
+        severity_level: warning
+        storage_type: ceph
+      expr: count(count(ceph_osd_metadata{job="ceph-exporter"}) by (ceph_version, namespace)) by (ceph_version, namespace) > 1
+      for: 10m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephMonVersionMismatch
+      annotations:
+    {% raw %}
+        description: There are {{ $value }} different versions of Ceph Mon components running.
+    {% endraw %}
+        message: There are multiple versions of storage services running.
+        severity_level: warning
+        storage_type: ceph
+      expr: count(count(ceph_mon_metadata{job="ceph-exporter", ceph_version != ""}) by (ceph_version)) > 1
+      for: 10m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+{% endif %}

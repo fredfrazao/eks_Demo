@@ -1,0 +1,45 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'general.rules' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "general.rules"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.general %}
+  groups: []
+{% else %}
+  groups:
+  - name: general.rules
+    rules:
+    - alert: TargetDown
+      annotations:
+    {% raw %}
+        description: '{{ printf "%.4g" $value }}% of the {{ $labels.job }}/{{ $labels.service }} targets in {{ $labels.namespace }} namespace are down.'
+    {% endraw %}
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/targetdown
+        summary: One or more targets are unreachable.
+      expr: 100 * (count(up == 0) BY (job, namespace, service) / count(up) BY (job, namespace, service)) > 10
+      for: 10m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.sre }}
+    - alert: Watchdog
+      annotations:
+        description: 'This is an alert meant to ensure that the entire alerting pipeline is functional.
+          This alert is always firing, therefore it should always be firing in Alertmanager
+          and always fire against a receiver. There are integrations with various notification
+          mechanisms that send a notification when this alert is not firing. For example the
+          "DeadMansSnitch" integration in PagerDuty.
+          '
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/watchdog
+        summary: An alert that should always be firing to certify that Alertmanager is working properly.
+      expr: vector(1)
+      labels:
+        severity: none
+        notify_team: {{ prometheus_alert_teams.watchdog }}
+{% endif %}

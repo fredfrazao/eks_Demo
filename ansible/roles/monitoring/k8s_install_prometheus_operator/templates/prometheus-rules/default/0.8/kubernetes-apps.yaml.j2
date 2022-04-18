@@ -1,0 +1,324 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kubernetes-apps' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kubernetes-apps"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubernetesApps %}
+  groups: []
+{% else %}
+  groups:
+  - name: kubernetes-apps
+    rules:
+    - alert: KubePodCrashLooping
+      annotations:
+    {% raw %}
+        description: 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is in waiting state (reason: "CrashLoopBackOff").'
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubepodcrashlooping
+        summary: Pod is crash looping.
+      expr: |-
+        (
+          max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff", job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[5m]) >= 1
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubePodNotReady
+      annotations:
+    {% raw %}
+        description: Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubepodnotready
+        summary: Pod has been in a non-ready state for more than 15 minutes.
+      expr: |-
+        (
+          sum by (namespace, pod) (
+            max by(namespace, pod) (
+              kube_pod_status_phase{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", phase=~"Pending|Unknown"}
+            ) * on(namespace, pod) group_left(owner_kind) topk by(namespace, pod) (
+              1, max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})
+            )
+          ) > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeDeploymentGenerationMismatch
+      annotations:
+    {% raw %}
+        description: Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubedeploymentgenerationmismatch
+        summary: Deployment generation mismatch due to possible roll-back
+      expr: |-
+        (
+          kube_deployment_status_observed_generation{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            !=
+          kube_deployment_metadata_generation{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeDeploymentReplicasMismatch
+      annotations:
+    {% raw %}
+        description: Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubedeploymentreplicasmismatch
+        summary: Deployment has not matched the expected number of replicas.
+      expr: |-
+        (
+          (
+            kube_deployment_spec_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+              !=
+            kube_deployment_status_replicas_available{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+          ) and (
+            changes(kube_deployment_status_replicas_updated{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[10m])
+              ==
+            0
+          )
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeStatefulSetReplicasMismatch
+      annotations:
+    {% raw %}
+        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatefulsetreplicasmismatch
+        summary: Deployment has not matched the expected number of replicas.
+      expr: |-
+        (
+          (
+            kube_statefulset_status_replicas_ready{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+              !=
+            kube_statefulset_status_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+          ) and (
+            changes(kube_statefulset_status_replicas_updated{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[10m])
+              ==
+            0
+          )
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeStatefulSetGenerationMismatch
+      annotations:
+    {% raw %}
+        description: StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatefulsetgenerationmismatch
+        summary: StatefulSet generation mismatch due to possible roll-back
+      expr: |-
+        (
+          kube_statefulset_status_observed_generation{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            !=
+          kube_statefulset_metadata_generation{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeStatefulSetUpdateNotRolledOut
+      annotations:
+    {% raw %}
+        description: StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatefulsetupdatenotrolledout
+        summary: StatefulSet update has not been rolled out.
+      expr: |-
+        (
+          (
+            max without (revision) (
+              kube_statefulset_status_current_revision{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+                unless
+              kube_statefulset_status_update_revision{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            )
+              *
+            (
+              kube_statefulset_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+                !=
+              kube_statefulset_status_replicas_updated{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            )
+          )  and (
+            changes(kube_statefulset_status_replicas_updated{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[5m])
+              ==
+            0
+          )
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeDaemonSetRolloutStuck
+      annotations:
+    {% raw %}
+        description: DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has not finished or progressed for at least 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubedaemonsetrolloutstuck
+        summary: DaemonSet rollout is stuck.
+      expr: |-
+        (
+          (
+            (
+              kube_daemonset_status_current_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+               !=
+              kube_daemonset_status_desired_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            ) or (
+              kube_daemonset_status_number_misscheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+               !=
+              0
+            ) or (
+              kube_daemonset_updated_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+               !=
+              kube_daemonset_status_desired_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            ) or (
+              kube_daemonset_status_number_available{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+               !=
+              kube_daemonset_status_desired_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            )
+          ) and (
+            changes(kube_daemonset_updated_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[5m])
+              ==
+            0
+          )
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeContainerWaiting
+      annotations:
+    {% raw %}
+        description: Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container}} has been in waiting state for longer than 1 hour.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubecontainerwaiting
+        summary: Pod container waiting longer than 1 hour
+      expr: |-
+        (
+          sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}) > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 1h
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeDaemonSetNotScheduled
+      annotations:
+    {% raw %}
+        description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled.'
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubedaemonsetnotscheduled
+        summary: DaemonSet pods are not scheduled.
+      expr: |-
+        (
+          kube_daemonset_status_desired_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            -
+          kube_daemonset_status_current_number_scheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"} > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 10m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeDaemonSetMisScheduled
+      annotations:
+    {% raw %}
+        description: '{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run.'
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubedaemonsetmisscheduled
+        summary: DaemonSet pods are misscheduled.
+      expr: |-
+        (
+          kube_daemonset_status_number_misscheduled{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"} > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeJobCompletion
+      annotations:
+    {% raw %}
+        description: Job {{ $labels.namespace }}/{{ $labels.job_name }} is taking more than 12 hours to complete.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubejobcompletion
+        summary: Job did not complete in time
+      expr: |-
+        (
+          kube_job_spec_completions{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"} - kube_job_status_succeeded{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}  > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 12h
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeJobFailed
+      annotations:
+    {% raw %}
+        description: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed to complete. Removing failed job after investigation should clear this alert.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubejobfailed
+        summary: Job failed to complete.
+      expr: |-
+        (
+          kube_job_failed{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}  > 0
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeHpaReplicasMismatch
+      annotations:
+    {% raw %}
+        description: HPA {{ $labels.namespace }}/{{ $labels.hpa }} has not matched the desired number of replicas for longer than 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubehpareplicasmismatch
+        summary: HPA has not matched descired number of replicas.
+      expr: |-
+        (
+          (kube_horizontalpodautoscaler_status_desired_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            !=
+          kube_horizontalpodautoscaler_status_current_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"})
+            and
+          (kube_horizontalpodautoscaler_status_current_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            >
+          kube_horizontalpodautoscaler_spec_min_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"})
+            and
+          (kube_horizontalpodautoscaler_status_current_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            <
+          kube_horizontalpodautoscaler_spec_max_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"})
+            and
+          changes(kube_horizontalpodautoscaler_status_current_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}[15m]) == 0
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeHpaMaxedOut
+      annotations:
+    {% raw %}
+        description: HPA {{ $labels.namespace }}/{{ $labels.hpa }} has been running at max replicas for longer than 15 minutes.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubehpamaxedout
+        summary: HPA is running at max replicas
+      expr: |-
+        (
+          kube_horizontalpodautoscaler_status_current_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+            ==
+          kube_horizontalpodautoscaler_spec_max_replicas{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"}
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+{% endif %}

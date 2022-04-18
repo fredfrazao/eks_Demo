@@ -1,0 +1,43 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'ssl.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "ssl.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ssl %}
+  groups: []
+{% else %}
+  groups:
+  - name: ssl.extra
+    rules:
+    - alert: SSLCertificateExpiresInOneMonth
+      annotations:
+        description: Raises when certificate will expire in a month.
+        summary: The certificate will expire in one month.
+      expr: ssl_file_cert_not_after - time() < 86400 * 30
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+    - alert: SSLCertificateIsNotYetValid
+      annotations:
+        description: Raises when certificate is not yet valid.
+        summary: The certificate is not yet valid.
+      expr: ssl_file_cert_not_before > time()
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+    - alert: NginxIngressSSLExpiresInFifteenDays
+      annotations:
+        description: Raises when certificate is going to expire in 15 days.
+        summary: The Nginx ingress controller certificate will expire in fifteen days.
+      expr: avg(nginx_ingress_controller_ssl_expire_time_seconds{ingress=~".*"}) by (host) - time() < 1296000
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+{% endif %}

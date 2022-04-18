@@ -1,0 +1,52 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'cluster-utilization-alert.rules' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "cluster-utilization-alert.rules"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: cluster-utilization-alert.rules
+    rules:
+    - alert: CephClusterNearFull
+      annotations:
+        description: Storage cluster utilization has crossed 75% and will become read-only at 85%. Free up some space or expand the storage cluster.
+        message: Storage cluster is nearing full. Data deletion or cluster expansion is required.
+        severity_level: warning
+        storage_type: ceph
+      expr: ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes > 0.6
+      for: 5s
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephClusterCriticallyFull
+      annotations:
+        description: Storage cluster utilization has crossed 80% and will become read-only at 85%. Free up some space or expand the storage cluster immediately.
+        message: Storage cluster is critically full and needs immediate data deletion or cluster expansion.
+        severity_level: error
+        storage_type: ceph
+      expr: ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes > 0.80
+      for: 5s
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephClusterReadOnly
+      annotations:
+        description: Storage cluster utilization has crossed 85% and will become read-only now. Free up some space or expand the storage cluster immediately.
+        message: Storage cluster is read-only now and needs immediate data deletion or cluster expansion.
+        severity_level: error
+        storage_type: ceph
+      expr: ceph_cluster_total_used_raw_bytes / ceph_cluster_total_bytes >= 0.85
+      for: 0s
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+{% endif %}

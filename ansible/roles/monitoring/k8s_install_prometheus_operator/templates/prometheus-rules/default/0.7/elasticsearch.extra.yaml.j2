@@ -1,0 +1,67 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'elasticsearch.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "elasticsearch.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.elasticsearch %}
+  groups: []
+{% else %}
+  groups:
+  - name: elasticsearch.extra
+    rules:
+    - alert: ElasticsearchSystemIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch system-* indices are not updated for 1h.
+        summary: The elasticsearch indices system-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"system-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchKubernetesIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch kubernetes-cmy-* indices are not updated for 1h.
+        summary: The elasticsearch indices kubernetes-cmy-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"kubernetes-cmy-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchKubeApiserverIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch kube-apiserver-* indices are not updated for 1h.
+        summary: The elasticsearch indices kube-apiserver-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"kube-apiserver-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchNetworkAuditIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch network-audit-* indices are not updated for 1h.
+        summary: The elasticsearch indices network-audit-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"network-audit-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchNetworkIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch network-* indices are not updated for 1h.
+        summary: The elasticsearch indices network-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"network-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchSystemAuditIndicesNotUpdated
+      annotations:
+        description: Raises when elasticsearch system-audit-* indices are not updated for 1h.
+        summary: The elasticsearch indices system-audit-* for the cluster are not updating since 1h.
+      expr: absent_over_time(elasticsearch_indices_store_size_bytes_total{index=~"system-audit-.*"}[1h]) > 0
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+{% endif %}

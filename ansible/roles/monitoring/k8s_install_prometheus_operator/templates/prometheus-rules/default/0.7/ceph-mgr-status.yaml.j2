@@ -1,0 +1,41 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'ceph-mgr-status' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "ceph-mgr-status"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: ceph-mgr-status
+    rules:
+    - alert: CephMgrIsAbsent
+      annotations:
+        description: Ceph Manager has disappeared from Prometheus target discovery.
+        message: Storage metrics collector service not available anymore.
+        severity_level: critical
+        storage_type: ceph
+      expr: label_replace((up{job="ceph-exporter"} == 0 or absent(up{job="ceph-exporter"})), "namespace", "openshift-storage", "", "")
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephMgrIsMissingReplicas
+      annotations:
+        description: Ceph Manager is missing replicas.
+        message: Storage metrics collector service doesn't have required no of replicas.
+        severity_level: warning
+        storage_type: ceph
+      expr: sum(kube_deployment_spec_replicas{deployment=~"rook-ceph-mgr-.*"}) by (namespace) < 1
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+{% endif %}

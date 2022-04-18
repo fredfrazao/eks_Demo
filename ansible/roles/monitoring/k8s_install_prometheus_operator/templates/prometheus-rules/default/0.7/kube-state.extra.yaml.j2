@@ -1,0 +1,30 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kube-state.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kube-state.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubeStateMetrics %}
+  groups: []
+{% else %}
+  groups:
+  - name: kube-state.extra
+    rules:
+    - alert: KubernetesContainerOomKiller
+      annotations:
+    {% raw %}
+        description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has been OOMKilled {{ $value }} times in the last 48 hours.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+    {% endraw %}
+        summary: Raises when a pod is OOMKilled.
+      expr: (kube_pod_container_status_restarts_total - kube_pod_container_status_restarts_total offset 1h >= 1) and ignoring (reason) min_over_time(kube_pod_container_status_last_terminated_reason{namespace=~"cmy.+|kube.+",reason="OOMKilled"}[1h]) == 1
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.sre }}
+{% endif %}

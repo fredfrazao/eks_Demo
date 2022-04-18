@@ -1,0 +1,11 @@
+{% if prometheus_monitor_components.cluster.etcdK8s  %}
+  {% if groups['k8s_etcd_node'] is defined and (groups['k8s_etcd_node'] | length > 0) %}
+- job_name: 'k8s-etcd-exporter'
+  honor_labels: true
+  static_configs:
+    - targets:
+    {% for host in groups['k8s_etcd_node'] %}
+      - {{ hostvars[host].service_ip +":"+(etcd_port | string) }}
+    {% endfor %}
+  {% endif %}
+{%endif%}

@@ -1,0 +1,159 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kubernetes-resources' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kubernetes-resources"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubernetesResources %}
+  groups: []
+{% else %}
+  groups:
+  - name: kubernetes-resources
+    rules:
+    - alert: KubeCPUOvercommit
+      annotations:
+        description: Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubecpuovercommit
+        summary: Cluster has overcommitted CPU resource requests.
+      expr: |-
+        (
+          sum(namespace_cpu:kube_pod_container_resource_requests:sum{namespace=~"{{ prometheus_namespaces }}"})
+            /
+          sum(kube_node_status_allocatable{resource="cpu"})
+            >
+          ((count(kube_node_status_allocatable{resource="cpu"}) > 1) - 1) / count(kube_node_status_allocatable{resource="cpu"})
+        ) {{ prometheus_extend_team_label }}
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeMemoryOvercommit
+      annotations:
+        description: Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubememoryovercommit
+        summary: Cluster has overcommitted memory resource requests.
+      expr: |-
+        (
+          sum(namespace_memory:kube_pod_container_resource_requests:sum{namespace=~"{{ prometheus_namespaces }}"})
+            /
+          sum(kube_node_status_allocatable{resource="memory"})
+            >
+          ((count(kube_node_status_allocatable{resource="memory"}) > 1) - 1)
+            /
+          count(kube_node_status_allocatable{resource="memory"})
+        ) {{ prometheus_extend_team_label }}
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeCPUQuotaOvercommit
+      annotations:
+        description: Cluster has overcommitted CPU resource requests for Namespaces.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubecpuquotaovercommit
+        summary: Cluster has overcommitted CPU resource requests.
+      expr: |-
+        (
+          sum(kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="hard", resource="cpu"})
+            /
+          sum(kube_node_status_allocatable{resource="cpu"})
+            > 1.5
+        ) {{ prometheus_extend_team_label }}
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeMemoryQuotaOvercommit
+      annotations:
+        description: Cluster has overcommitted memory resource requests for Namespaces.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubememoryquotaovercommit
+        summary: Cluster has overcommitted memory resource requests.
+      expr: |-
+        (
+          sum(kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="hard", resource="memory"})
+            /
+          sum(kube_node_status_allocatable{resource="memory",job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}"})
+            > 1.5
+        ) {{ prometheus_extend_team_label }}
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeQuotaAlmostFull
+      annotations:
+    {% raw %}
+        description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubequotaalmostfull
+        summary: Namespace quota is going to be full.
+      expr: |-
+        (
+          kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="used"}
+            / ignoring(instance, job, type)
+          (kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="hard"} > 0)
+            > 0.9 < 1
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: info
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeQuotaFullyUsed
+      annotations:
+    {% raw %}
+        description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubequotafullyused
+        summary: Namespace quota is fully used.
+      expr: |-
+        (
+          kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="used"}
+            / ignoring(instance, job, type)
+          (kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="hard"} > 0)
+            == 1
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: info
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: KubeQuotaExceeded
+      annotations:
+    {% raw %}
+        description: Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubequotaexceeded
+        summary: Namespace quota has exceeded the limits.
+      expr: |-
+        (
+          kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="used"}
+            / ignoring(instance, job, type)
+          (kube_resourcequota{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics", namespace=~"{{ prometheus_namespaces }}", type="hard"} > 0)
+            > 1
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+    - alert: CPUThrottlingHigh
+      annotations:
+    {% raw %}
+        description: '{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }}.'
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/cputhrottlinghigh
+        summary: Processes experience elevated CPU throttling.
+      expr: |-
+        (
+          sum(increase(container_cpu_cfs_throttled_periods_total{namespace=~"{{ prometheus_namespaces }}", container!="", }[5m])) by (container, pod, namespace)
+            /
+          sum(increase(container_cpu_cfs_periods_total{}[5m])) by (container, pod, namespace)
+            > ( 25 / 100 )
+        ) {{ prometheus_extend_team_label }}
+      for: 15m
+      labels:
+        severity: info
+        notify_team: {{'"{{'}} $labels.{{ prometheus_namespace_team_label }}{{'}}"'}}
+{% endif %}

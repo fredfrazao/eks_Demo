@@ -1,0 +1,230 @@
+{% raw %}
+    global:
+      resolve_timeout: 5m
+{% endraw %}
+{% if monitoring_region_name == "eu1" %}
+      opsgenie_api_key: "{{ vault_opsgenie_api_key }}"
+{% endif %}
+{% raw %}
+      opsgenie_api_url: https://api.eu.opsgenie.com
+    templates:
+    - '*.tmpl'
+    route:
+      receiver: 'slack_general'
+      group_by: ['alertname', 'cluster', 'namespace', 'app']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 3h
+      routes:
+        - receiver: "null"
+          match:
+            alertname: Watchdog
+          continue: true
+        - receiver: "slack_infra"
+          group_by: ['alertname', 'cluster', 'namespace', 'app']
+          match:
+{% endraw %}
+            notify_team: "{{ prometheus_alert_teams.infra }}"
+{% raw %}
+          continue: true
+        - receiver: "slack_cns"
+          group_by: ['alertname', 'cluster', 'namespace', 'app']
+          match_re:
+{% endraw %}
+            notify_team: "{{ prometheus_alert_teams.cns }}|{{ prometheus_alert_teams.cns_ui }}|{{ prometheus_alert_teams.corens }}"
+{% raw %}
+          continue: true
+        - receiver: "slack_sre"
+          group_by: ['alertname', 'cluster', 'namespace', 'app']
+          match:
+{% endraw %}
+            notify_team: "{{ prometheus_alert_teams.sre }}"
+{% raw %}
+          continue: true
+    receivers:
+    - name: "null"
+    - name: 'slack_general'
+      slack_configs:
+{% endraw %}
+      - api_url: "{{ alertmanager_slack.general.hook }}"
+        channel: "#{{ alertmanager_slack.general.channel }}"
+{% raw %}
+        color: '{{ template "slack.cmy.color" . }}'
+        pretext: '{{ .CommonAnnotations.summary }}'
+        text: '{{ template "slack.cmy.text" . }}'
+        send_resolved: true
+        actions:
+        - type: button
+          text: 'Runbook :green_book:'
+          url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+        - type: button
+          text: 'Query :mag:'
+          url: '{{ (index .Alerts 0).GeneratorURL }}'
+        - type: button
+          text: 'Dashboard :grafana:'
+          url: '{{ (index .Alerts 0).Annotations.dashboard }}'
+        - type: button
+          text: 'Silence :no_bell:'
+          url: '{{ template "__alert_silence_link" . }}'
+          url: '{{ template "__alert_silence_link" . }}'
+{% endraw %}
+{% if monitoring_region_name == "eu1" %}
+      opsgenie_configs:
+      - api_key: "{{ vault_opsgenie_api_key }}"
+        api_url: https://api.eu.opsgenie.com
+        http_config: {}
+        send_resolved: true
+{% endif %}
+    - name: 'slack_infra'
+      slack_configs:
+      - api_url: "{{ alertmanager_slack.infra.hook }}"
+        channel: "#{{ alertmanager_slack.infra.channel }}"
+{% raw %}
+        color: '{{ template "slack.cmy.color" . }}'
+        pretext: '{{ .CommonAnnotations.summary }}'
+        text: '{{ template "slack.cmy.text" . }}'
+        send_resolved: true
+        actions:
+        - type: button
+          text: 'Runbook :green_book:'
+          url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+        - type: button
+          text: 'Query :mag:'
+          url: '{{ (index .Alerts 0).GeneratorURL }}'
+        - type: button
+          text: 'Dashboard :grafana:'
+          url: '{{ (index .Alerts 0).Annotations.dashboard }}'
+        - type: button
+          text: 'Silence :no_bell:'
+          url: '{{ template "__alert_silence_link" . }}'
+    - name: 'slack_sre'
+      slack_configs:
+{% endraw %}
+      - api_url: "{{ alertmanager_slack.sre.hook }}"
+        channel: "#{{ alertmanager_slack.sre.channel }}"
+{% raw %}
+        color: '{{ template "slack.cmy.color" . }}'
+        pretext: '{{ .CommonAnnotations.summary }}'
+        text: '{{ template "slack.cmy.text" . }}'
+        send_resolved: true
+        actions:
+        - type: button
+          text: 'Runbook :green_book:'
+          url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+        - type: button
+          text: 'Query :mag:'
+          url: '{{ (index .Alerts 0).GeneratorURL }}'
+        - type: button
+          text: 'Dashboard :grafana:'
+          url: '{{ (index .Alerts 0).Annotations.dashboard }}'
+        - type: button
+          text: 'Silence :no_bell:'
+          url: '{{ template "__alert_silence_link" . }}'
+{% endraw %}
+{% if monitoring_region_name == "eu1" %}
+      opsgenie_configs:
+      - api_key: "{{ vault_opsgenie_api_key }}"
+        api_url: https://api.eu.opsgenie.com
+        http_config: {}
+        send_resolved: true
+{% endif %}
+    - name: 'slack_cns'
+      slack_configs:
+      - api_url: "{{ alertmanager_slack.cns.hook }}"
+        channel: "#{{ alertmanager_slack.cns.channel }}"
+{% raw %}
+        color: '{{ template "slack.cmy.color" . }}'
+        pretext: '{{ .CommonAnnotations.summary }}'
+        text: '{{ template "slack.cmy.text" . }}'
+        send_resolved: true
+        actions:
+        - type: button
+          text: 'Runbook :green_book:'
+          url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+        - type: button
+          text: 'Query :mag:'
+          url: '{{ (index .Alerts 0).GeneratorURL }}'
+        - type: button
+          text: 'Dashboard :grafana:'
+          url: '{{ (index .Alerts 0).Annotations.dashboard }}'
+        - type: button
+          text: 'Silence :no_bell:'
+          url: '{{ template "__alert_silence_link" . }}'
+{% endraw %}
+{% raw %}
+
+  ## Alertmanager template files to format alerts
+  ## ref: https://prometheus.io/docs/alerting/notifications/
+  ##      https://prometheus.io/docs/alerting/notification_examples/
+  ##
+  templateFiles:
+    slackalert.tmpl: |-
+      # This builds the silence URL.  We exclude the alertname in the range
+      # to avoid the issue of having trailing comma separator (%2C) at the end
+      # of the generated URL
+      {{ define "__alert_silence_link" -}}
+          {{ .ExternalURL }}/#/silences/new?filter=%7B
+          {{- range .CommonLabels.SortedPairs -}}
+              {{- if ne .Name "alertname" -}}
+                  {{- .Name }}%3D"{{- .Value -}}"%2C%20
+              {{- end -}}
+          {{- end -}}
+          alertname%3D"{{ .CommonLabels.alertname }}"%7D
+      {{- end }}
+      {{ define "__alert_severity_prefix" -}}
+          {{ if ne .Status "firing" -}}
+          :lgtm:
+          {{- else if eq .Labels.severity "critical" -}}
+          :fire:
+          {{- else if eq .Labels.severity "warning" -}}
+          :warning:
+          {{- else -}}
+          :question:
+          {{- end }}
+      {{- end }}
+      {{ define "__alert_severity_prefix_title" -}}
+          {{ if ne .Status "firing" -}}
+          :lgtm:
+          {{- else if eq .CommonLabels.severity "critical" -}}
+          :fire:
+          {{- else if eq .CommonLabels.severity "warning" -}}
+          :warning:
+          {{- else if eq .CommonLabels.severity "info" -}}
+          :information_source:
+          {{- else -}}
+          :question:
+          {{- end }}
+      {{- end }}
+      {{/* Color of Slack attachment (appears as line next to alert )*/}}
+      {{ define "slack.cmy.color" -}}
+          {{ if eq .Status "firing" -}}
+              {{ if eq .CommonLabels.severity "warning" -}}
+                  warning
+              {{- else if eq .CommonLabels.severity "critical" -}}
+                  danger
+              {{- else -}}
+                  #439FE0
+              {{- end -}}
+          {{ else -}}
+          good
+          {{- end }}
+      {{- end }}
+      {{/* First line of Slack alerts */}}
+      {{ define "slack.cmy.title" -}}
+          [{{ .Status | toUpper -}}
+          {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{- end -}}
+          ] {{ template "__alert_severity_prefix_title" . }} {{ .CommonLabels.alertname }}
+      {{- end }}
+      {{/* Emoji to display as user icon (custom emoji supported!) */}}
+      {{ define "slack.cmy.icon_emoji" }}:prometheus:{{ end }}
+      {{/* The test to display in the alert */}}
+      {{ define "slack.cmy.text" -}}
+        {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }} - `{{ .Labels.severity }}`
+          *Description:* {{ .Annotations.message }}
+          *Region:* {{ .Labels.region }}
+          *Zone:* {{ .Labels.zone }}
+          *Cluster:* {{ .Labels.cluster }}
+        {{ end }}
+      {{- end }}
+{% endraw %}

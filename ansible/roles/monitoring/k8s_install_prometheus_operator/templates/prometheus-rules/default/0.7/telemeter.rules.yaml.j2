@@ -1,0 +1,29 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'telemeter.rules' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "telemeter.rules"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: telemeter.rules
+    rules:
+    - expr: count(ceph_osd_metadata{job="ceph-exporter"})
+      record: job:ceph_osd_metadata:count
+    - expr: count(kube_persistentvolume_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)", namespace=~"{{ prometheus_namespaces }}"})
+      record: job:kube_pv:count
+    - expr: sum(ceph_pool_rd{job="ceph-exporter"}+ ceph_pool_wr{job="ceph-exporter"})
+      record: job:ceph_pools_iops:total
+    - expr: sum(ceph_pool_rd_bytes{job="ceph-exporter"}+ ceph_pool_wr_bytes{job="ceph-exporter"})
+      record: job:ceph_pools_iops_bytes:total
+    - expr: count(count(ceph_mon_metadata{job="ceph-exporter"} or ceph_osd_metadata{job="ceph-exporter"} or ceph_rgw_metadata{job="ceph-exporter"} or ceph_mds_metadata{job="ceph-exporter"} or ceph_mgr_metadata{job="ceph-exporter"}) by(ceph_version))
+      record: job:ceph_versions_running:count
+{% endif %}

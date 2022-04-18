@@ -1,0 +1,194 @@
+---
+thanos_store_service_account_base64: "{{ vault_thanos_store_service_account_base64 }}"
+
+prometheus_blackbox_enabled: true
+
+prometheus_namespace_team_label: label_cloudmobility_io_team
+
+alertmanager_values:
+  enabled: true
+  replicaCount: 2
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "{{ ingress_class_name }}"
+      cert-manager.io/cluster-issuer: "{{ certmanager_ca_issuer_name }}"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"  # noqa unnecessary-quotes
+    hosts:
+      - name: "{{ alertmanager_host }}"
+        path: /
+    hostname: "{{ alertmanager_host }}"
+    tls:
+      - hosts:
+          - "{{ alertmanager_host }}"
+        secretName: "{{ alertmanager_host }}"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 200Mi
+    requests:
+      cpu: 50m
+      memory: 200Mi
+  retention: 120h
+  logLevel: error
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 20Gi
+
+prometheus_operator_config:
+  enabled: true
+  createCustomResource: true
+  configReloaderCpu: 100m
+  configReloaderMemory: 25Mi
+  logLevel: error
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+prometheus_config:
+  enabled: true
+  replicaCount: 2
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "{{ ingress_class_name }}"
+      cert-manager.io/cluster-issuer: "{{ certmanager_ca_issuer_name }}"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"  # noqa unnecessary-quotes
+    hosts:
+      - name: "{{ prometheus_host }}"
+        path: /
+    hostname: "{{ prometheus_host }}"
+    tls:
+      - hosts:
+          - "{{ prometheus_host }}"
+        secretName: "{{ prometheus_host }}"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 5000Mi
+    requests:
+      cpu: 500m
+      memory: 5000Mi
+  scrapeInterval: 30s
+  evaluationInterval: 30s
+  retention: 21d
+  logLevel: error
+  persistence:
+    enabled: true
+    storageClass: standard
+    size: 250Gi
+  thanos:
+    create: true
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 500Mi
+
+# Grafana
+
+monitoring_grafana_admin_pass: "{{ vault_monitoring_k8s_grafana_admin_pass }}"
+grafana_admin_pass: "{{ vault_monitoring_k8s_grafana_admin_pass }}"
+grafana_keycloak_secret: "{{ vault_grafana_keycloak_secret }}"
+grafana_host: "grafana.{{ system_dns_bind_zone_domains.internal.name }}"
+
+grafana:
+  enabled: true
+  # ingress:
+  #   extraHosts:
+  #   - name: "grafana.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains.internal.name }}"
+  #     path: /
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+
+grafana_datasources:
+  - name: Thanos
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: "https://thanos.{{ system_dns_bind_zone_domains.internal.name }}"
+    version: 1
+    editable: true
+    isDefault: true
+    jsonData:
+      tlsSkipVerify: true
+
+prometheus_monitor_components:
+  cluster:
+    blackbox: false
+    kubeApiServer: true
+    kubelet: true
+    kubeProxy: true
+    kubeStateMetrics: true
+    cilium: false
+    etcdCilium: false
+    etcdK8s: false
+    kubeControllerManager: true
+    kubeScheduler: false
+    coreDns: false
+  external:
+    infraNodes: true
+    networkNodes: true
+    computeNodes: true
+    storageNodes: false
+    devNodes: true
+    rackhd: false
+    haproxy: false
+    dns: true
+    ceph: true
+    blackbox: false
+
+prometheus_rules:
+  # Cluster
+  alertmanager: true
+  prometheusOperator: true
+  prometheus: true
+  general: true
+  k8s: true
+  kubernetesSystem: true
+  kubeApiserver: true
+  kubeApiserverSlos: true
+  kubeApiserverAvailability: true
+  kubelet: true
+  kubeStateMetrics: true
+  kubePrometheusNodeRecording: true
+  kubePrometheusGeneral: true
+  kubernetesStorage: true
+  kubernetesResources: true
+  kubernetesApps: true
+  kubeScheduler: false
+  kubeControllerManager: false
+  etcd: false
+  metallb: false
+  elasticsearch: true
+  # External
+  node: true
+  network: true
+  blackbox: false
+  ceph: true
+  ssl: true
+
+thanos:
+  create: true
+  querier:
+    enabled: true
+  bucketweb:
+    enabled: true
+    ingress:
+      enabled: true
+  compactor:
+    enabled: true
+  storegateway:
+    enabled: true

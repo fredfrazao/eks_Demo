@@ -1,0 +1,85 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'elasticsearch.application.alerts' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "elasticsearch.application.alerts"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.elasticsearch %}
+  groups: []
+{% else %}
+  groups:
+  - name: elasticsearch.application.alerts
+    rules:
+    - alert: ElasticsearchClusterStatusRed
+      annotations:
+    {% raw %}
+        description: Cluster {{ $labels.cluster }} health status has been RED for at least 2m. Cluster does not accept writes, shards may be missing or master node hasn't been elected yet.
+    {% endraw %}
+        summary: Cluster health status is RED
+      expr: max by (cluster,) (elasticsearch_cluster_health_status{color="red", job=~"elasticsearch.*"} == 1)
+      for: 2m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchClusterStatusYellow
+      annotations:
+    {% raw %}
+        description: Cluster {{ $labels.cluster }} health status has been YELLOW for at least 20m. Some shard replicas are not allocated.
+    {% endraw %}
+        summary: Cluster health status is YELLOW
+      expr: max by (cluster,) (elasticsearch_cluster_health_status{color="yellow", job=~"elasticsearch.*"} == 1)
+      for: 20m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchThreadPoolRejectionError
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}][{{ $labels.name }}] threadpool rejection over 2m > 0'
+        summary: '[Elasticsearch] High rejection rate for {{ $labels.type }} threadpool'
+    {% endraw %}
+      expr: max by (cluster, name, type,) (irate(elasticsearch_thread_pool_rejected_count{job=~"elasticsearch.*"}[5m])) > 0
+      for: 2m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchThreadPoolRejectionError
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}][{{ $labels.name }}] threadpool rejection over 10m > 0'
+        summary: '[Elasticsearch] High rejection rate for {{ $labels.type }} threadpool'
+    {% endraw %}
+      expr: max by (cluster, name, type,) (irate(elasticsearch_thread_pool_rejected_count{job=~"elasticsearch.*"}[5m])) > 0
+      for: 10m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchSnapshotFailure
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}] Last snapshot failed.'
+    {% endraw %}
+        summary: '[Elasticsearch] Snapshot failure'
+      expr: elasticsearch_snapshot_stats_snapshot_number_of_failures{job=~"elasticsearch.*"} >  0
+      for: 8h
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchSnapshotMetricsUnavailable
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}] No data for cluster backup status.'
+    {% endraw %}
+        summary: '[Elasticsearch] Snapshot metrics API is broken'
+      expr: elasticsearch_snapshot_stats_up{job=~"elasticsearch.*"} ==  0
+      for: 1h
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+{% endif %}

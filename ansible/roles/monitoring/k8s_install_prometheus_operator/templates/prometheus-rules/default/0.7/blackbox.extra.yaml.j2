@@ -1,0 +1,43 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'blackbox.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "blackbox.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.blackbox %}
+  groups: []
+{% else %}
+  groups:
+  - name: blackbox.extra
+    rules:
+    - alert: BlackboxProbeHasFailed
+      annotations:
+        description: Raises when blackbox exporter was not able to successfully probe endpoint.
+        runbook_url: https://cloudstr.atlassian.net/wiki/spaces/PED/pages/26378343/Runbooks
+    {% raw %}
+        summary: The blackbox exporter target {{ $labels.instance }} could not be probed successfully.
+    {% endraw %}
+      expr: probe_success == 0
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+    - alert: BlackboxProbeHasNotReceived200
+      annotations:
+        description: Raises when blackbox exporter probe was not able to receive a 200 response.
+        runbook_url: https://cloudstr.atlassian.net/wiki/spaces/PED/pages/26378343/Runbooks
+    {% raw %}
+        summary: The blackbox exporter target {{ $labels.instance }} did not reply 200 in response.
+    {% endraw %}
+      expr: probe_http_status_code > 200
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+{% endif %}

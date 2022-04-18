@@ -1,0 +1,108 @@
+---
+metrics_exporter_ip: "{{ network_control_plane_separated | ternary(service_ip, ansible_host) }}"
+
+node_exporter_service_name: node-exporter
+node_exporter_user: node_exporter
+node_exporter_package_base_url: https://storage.googleapis.com/software-binaries/node-exporter/
+node_exporter_package: node_exporter-1.2.2.linux-amd64
+node_exporter_package_checksum: sha256:ae6030f0bad626a1acc43e0698d227212bc5d71196fd0af79e24e662c0f1c561
+
+cumulus_exporter_service_name: cumulus-exporter
+cumulus_exporter_user: cumulus_exporter
+cumulus_exporter_package_base_url: https://storage.googleapis.com/software-binaries/cumulus-exporter/
+cumulus_exporter_package: cumulus_exporter_0.1.0_linux_x86_64
+cumulus_exporter_package_checksum: sha256:94dca6a2b7973bb02b9fe43e67de356b1be669a2ef3a9c01584179d6b5e38924
+
+libvirt_exporter_service_name: libvirt-exporter
+libvirt_exporter_user: libvirt_exporter
+libvirt_exporter_package_base_url: https://storage.googleapis.com/software-binaries/libvirt-exporter/
+libvirt_exporter_package: libvirt_exporter_v0.2.0-linux-amd64
+libvirt_exporter_package_checksum: sha256:7a60f8ce882dd58cea5519cbc76876283f7a460169e3449da82eb8aee81e45e2
+
+frr_exporter_service_name: frr-exporter
+frr_exporter_package_base_url: https://storage.googleapis.com/software-binaries/frr-exporter/
+frr_exporter_package: frr_exporter-0.2.20.linux-amd64
+frr_exporter_package_checksum: sha256:f3e443dde170f1a03c11b254c2fa99c19f5c8e99ccf8b589ca788cffc2a74e2d
+
+ceph_exporter_service_name: ceph-exporter
+ceph_exporter_user: ceph
+ceph_exporter_package_base_url: https://storage.googleapis.com/software-binaries/ceph-exporter/
+ceph_exporter_package: ceph_exporter_v3.0.0-linux-amd64
+ceph_exporter_package_checksum: sha256:c162b5f99b3e44c0d975013a1c8eaa08fae249b64c070a65178b12201bfaad29
+
+ssl_exporter_service_name: ssl-exporter
+ssl_exporter_user: ssl_exporter
+ssl_exporter_package_base_url: https://storage.googleapis.com/software-binaries/ssl-exporter/
+ssl_exporter_package: ssl_exporter-01.12.2020.linux-amd64
+ssl_exporter_package_checksum: sha256:7938af68fad52d8b3365287189b94b84e1e8ff4eb0b0e50ebc5e1137c19068f0
+
+blackbox_exporter_service_name: blackbox-exporter
+blackbox_exporter_user: blackbox_exporter
+blackbox_exporter_package_base_url: https://storage.googleapis.com/software-binaries/blackbox-exporter/
+blackbox_exporter_package: blackbox_exporter-0.19.0.linux-amd64
+blackbox_exporter_package_checksum: sha256:08ac85642f1311e037771f41498988dc93ea1bf14c8bdccb11b6fefda6744a88
+
+# Prometheus chart
+prometheus_operator_chart_release_name: cmy-prometheus-operator
+prometheus_operator_chart_version: 6.3.0
+
+# Prometheus target ports
+node_exporter_port: 9100
+cumulus_exporter_port: 9365
+ceph_exporter_port: 9283
+libvirt_exporter_port: 9177
+etcd_port: 2378
+cilium_etcd_port: 2388
+frr_exporter_port: 9342
+ssl_exporter_port: 9219
+blackbox_exporter_port: 9145
+
+# Prometheus Blackbox
+prometheus_blackbox_enabled: true
+prometheus_blackbox_cmy_targets:
+  # Queries to the internal DNS servers
+  - name: dns-internal-domain-from-internal-ns-1
+    url: "{{ system_dns_first_internal.ip }}"
+    module: dns_internal
+  - name: dns-internal-domain-from-internal-ns-2
+    url: "{{ system_dns_second_internal.ip }}"
+    module: dns_internal
+  - name: dns-external-domain-from-internal-ns-1
+    url: "{{ system_dns_first_internal.ip }}"
+    module: dns_external
+  - name: dns-external-domain-from-internal-ns-2
+    url: "{{ system_dns_second_internal.ip }}"
+    module: dns_external
+  # Queries to the external DNS servers
+  - name: dns-external-domain-from-external-ns-1
+    url: "{{ system_dns_first_external.ip }}"
+    module: dns_external
+  - name: dns-internal-domain-from-external-ns-2
+    url: "{{ system_dns_second_external.ip }}"
+    module: dns_external
+prometheus_blackbox_additional_targets: []
+prometheus_blackbox_targets: "{{ prometheus_blackbox_cmy_targets + prometheus_blackbox_additional_targets }}"
+
+# Grafana chart
+grafana_chart_release_name: cmy-grafana
+grafana_chart_version: 6.3.3
+
+# grafana default
+grafana:
+  enabled: true
+
+# Thanos chart
+thanos_chart_release_name: cmy-thanos
+thanos_chart_version: 9.0.9
+
+
+alertmanager_mattermost_general: "{{ vault_alertmanager_mattermost_general }}"
+alertmanager_mattermost_infra: "{{ vault_alertmanager_mattermost_infra }}"
+alertmanager_mattermost_cns: "{{ vault_alertmanager_mattermost_cns }}"
+alertmanager_mattermost_sre: "{{ vault_alertmanager_mattermost_sre }}"
+
+
+#  secrets
+grafana_admin_pass: "{{ vault_monitoring_k8s_grafana_admin_pass }}"
+grafana_keycloak_secret: "{{ vault_grafana_keycloak_secret }}"
+thanos_store_service_account_base64: "{{ vault_thanos_store_service_account_base64 }}"

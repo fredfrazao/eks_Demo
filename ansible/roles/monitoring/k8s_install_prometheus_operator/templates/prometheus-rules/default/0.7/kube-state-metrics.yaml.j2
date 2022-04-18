@@ -1,0 +1,45 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kube-state-metrics' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kube-state-metrics"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubeStateMetrics %}
+  groups: []
+{% else %}
+  groups:
+  - name: kube-state-metrics
+    rules:
+    - alert: KubeStateMetricsListErrors
+      annotations:
+        message: kube-state-metrics is experiencing errors at an elevated rate in list operations. This is likely causing it to not be able to expose metrics about Kubernetes objects correctly or at all.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatemetricslisterrors
+      expr: |-
+        (sum(rate(kube_state_metrics_list_total{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_list_total{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.barekube }}
+    - alert: KubeStateMetricsWatchErrors
+      annotations:
+        message: kube-state-metrics is experiencing errors at an elevated rate in watch operations. This is likely causing it to not be able to expose metrics about Kubernetes objects correctly or at all.
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubestatemetricswatcherrors
+      expr: |-
+        (sum(rate(kube_state_metrics_watch_total{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_watch_total{job="{{ prometheus_operator_chart_release_name }}-kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.barekube }}
+{% endif %}

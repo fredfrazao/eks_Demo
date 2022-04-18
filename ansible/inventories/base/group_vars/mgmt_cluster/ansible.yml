@@ -1,0 +1,2 @@
+---
+ansible_python_interpreter: "{{ local_ansible_python_interpreter | default('$(pipenv --py)') }}"  # this should be set to $(pipenv --py)

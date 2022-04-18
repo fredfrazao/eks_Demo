@@ -1,0 +1,18 @@
+{% if prometheus_monitor_components.external.infraNodes  %}
+  {% if groups['all_infra_nodes'] is defined and (groups['all_infra_nodes'] | length > 0) %}
+- job_name: 'infra-node-exporter'
+  honor_labels: true
+  static_configs:
+    - targets:
+    {% for host in groups['all_infra_nodes'] %}
+      - {{ hostvars[host].metrics_exporter_ip +":"+(node_exporter_port | string) }}
+    {% endfor %}
+- job_name: 'infra-libvirt-exporter'
+  honor_labels: true
+  static_configs:
+    - targets:
+    {% for host in groups['all_infra_nodes'] %}
+      - {{ hostvars[host].metrics_exporter_ip +":"+(libvirt_exporter_port | string) }}
+    {% endfor %}
+  {% endif %}
+{% endif %}

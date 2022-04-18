@@ -1,0 +1,47 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kubernetes-system' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kubernetes-system"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubernetesSystem %}
+  groups: []
+{% else %}
+  groups:
+  - name: kubernetes-system
+    rules:
+    - alert: KubeVersionMismatch
+      annotations:
+    {% raw %}
+        description: There are {{ $value }} different semantic versions of Kubernetes components running.
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubeversionmismatch
+        summary: Different semantic versions of Kubernetes components running.
+      expr: count(count by (gitVersion) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"gitVersion","$1","gitVersion","(v[0-9]*.[0-9]*).*"))) > 1
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.barekube }}
+    - alert: KubeClientErrors
+      annotations:
+    {% raw %}
+        description: Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance }}' is experiencing {{ $value | humanizePercentage }} errors.'
+    {% endraw %}
+        runbook_url: https://github.com/prometheus-operator/kube-prometheus/wiki/kubeclienterrors
+        summary: Kubernetes API server client is experiencing errors.
+      expr: |-
+        (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (instance, job)
+          /
+        sum(rate(rest_client_requests_total[5m])) by (instance, job))
+        > 0.01
+      for: 15m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.barekube }}
+{% endif %}

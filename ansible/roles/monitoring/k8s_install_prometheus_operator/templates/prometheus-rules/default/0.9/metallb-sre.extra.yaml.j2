@@ -1,0 +1,30 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'metallb-sre.extra' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "metallb-sre.extra"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.metallb %}
+  groups: []
+{% else %}
+  groups:
+  - name: metallb-sre.extra
+    rules:
+    - alert: MetallbBGPSessionDown
+      annotations:
+        description: Raises when a node has metallb BGP sessions down.
+    {% raw %}
+        summary: The {{ $labels.cluster }} currently has a BGP session down, expected 2 BGP sessions per node.
+    {% endraw %}
+      expr: (2 * count(kube_node_info) by (cluster)) > count(metallb_bgp_session_up) by (cluster)
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.sre }}
+{% endif %}

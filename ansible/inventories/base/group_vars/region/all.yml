@@ -1,0 +1,53 @@
+---
+hostname_check_enabled: false
+
+compute_gcr_hostname: eu.gcr.io
+compute_gcr_uri: "{{ compute_gcr_hostname }}/ccp-prod-239910"
+compute_gcr_service_account_key_json_base64: "{{ vault_compute_gcp_service_account_key_content_base64 }}"
+
+bitnami_chart_source: https://charts.bitnami.com/bitnami
+# DockerHub configuration
+compute_dockerhub_hostname: docker.io
+compute_dockerhub_service_account_credentials_base64: "{{ vault_compute_dockerhub_service_account_credentials_base64 }}"
+
+security_keycloak_host: "keycloak.{{ system_dns_bind_zone_domains.external.name }}"
+
+compute_cmy_managed_resource_label:
+  cloudmobility.io/managed: "true"
+
+compute_infra_managed_resource_label:
+  cloudmobility.io/team: "sre"
+
+compute_sre_resource_labels: "{{ compute_cmy_managed_resource_label | combine(compute_infra_managed_resource_label) }}"
+
+compute_infra_restricted_psp_name: infra-restricted
+
+# Variables for DNS servers
+system_dns_primary:
+  name: ns1
+  ip: "{{ hostvars[groups['ns1'][0]].ansible_host }}"
+system_dns_backup_primary:
+  name: ns2
+  ip: "{{ hostvars[groups['ns2'][0]].ansible_host }}"
+system_dns_first_internal:
+  name: ns1i
+  ip: "{{ hostvars[groups['ns1i'][0]].ansible_host }}"
+system_dns_second_internal:
+  name: ns2i
+  ip: "{{ hostvars[groups['ns2i'][0]].ansible_host }}"
+system_dns_first_external:
+  name: ns1x
+  ip: "{{ hostvars[groups['ns1x'][0]].ansible_host }}"
+  external_ip: "{{ hostvars[groups['ns1x'][0]].external_ip | default('127.0.0.1') }}"
+system_dns_second_external:
+  name: ns2x
+  ip: "{{ hostvars[groups['ns2x'][0]].ansible_host }}"
+  external_ip: "{{ hostvars[groups['ns2x'][0]].external_ip | default('127.0.0.1') }}"
+
+system_python_pip_requirements:
+  - "gsutil==4.56"
+  - "cryptography==3.4.7"
+  - "kubernetes==12.0.0"
+  - "openshift==0.12.1"
+  - "PyYAML==5.3.1"
+  - "netaddr==0.7.19"

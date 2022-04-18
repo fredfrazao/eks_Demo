@@ -1,0 +1,23 @@
+---
+logging_opendistro_chart_release_name: cmy-logging-opendistro-es
+logging_opendistro_chart_namespace: cmy-logging
+
+es_exporter_chart_repo: https://prometheus-community.github.io/helm-charts
+es_exporter_chart_namespace: "{{ logging_opendistro_chart_namespace }}"
+es_exporter_chart_release_name: cmy-logging-es-exporter
+es_exporter_chart_name: prometheus-elasticsearch-exporter
+es_exporter_chart_version: 4.4.0
+
+es_exporter_client_credentials:
+  username: admin
+  password: "{{ vault_sre_logging_opendistro_admin_pwd_base64 | b64decode }}"
+
+es_exporter_chart_extra_values:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 256Mi
+    requests:
+      cpu: 300m
+      memory: 128Mi

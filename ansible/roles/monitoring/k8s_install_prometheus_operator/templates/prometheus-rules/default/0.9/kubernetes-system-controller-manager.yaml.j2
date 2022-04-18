@@ -1,0 +1,31 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'kubernetes-system-controller-manager' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "kubernetes-system-controller-manager"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.kubeControllerManager %}
+  groups: []
+{% else %}
+  groups:
+  - name: kubernetes-system-controller-manager
+    rules:
+    {% if prometheus_alerts.kubeControllerManagerDown %}
+    - alert: KubeControllerManagerDown
+      annotations:
+        description: KubeControllerManager has disappeared from Prometheus target discovery.
+        runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubecontrollermanagerdown
+        summary: Target disappeared from Prometheus target discovery.
+      expr: absent(up{job="{{ prometheus_operator_chart_release_name }}-kube-controller-manager"} == 1)
+      for: 15m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.barekube }}
+    {% endif %}
+{% endif %}

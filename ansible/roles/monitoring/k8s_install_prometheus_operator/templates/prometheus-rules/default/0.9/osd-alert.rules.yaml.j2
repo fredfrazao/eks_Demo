@@ -1,0 +1,119 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'osd-alert.rules' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "osd-alert.rules"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.ceph %}
+  groups: []
+{% else %}
+  groups:
+  - name: osd-alert.rules
+    rules:
+    - alert: CephOSDCriticallyFull
+      annotations:
+    {% raw %}
+        description: Utilization of storage device {{ $labels.ceph_daemon }} of device_class type {{$labels.device_class}} has crossed 80% on host {{ $labels.hostname }}. Immediately free up some space or add capacity of type {{$labels.device_class}}.
+    {% endraw %}
+        message: Back-end storage device is critically full.
+        severity_level: error
+        storage_type: ceph
+      expr: (ceph_osd_metadata * on (ceph_daemon) group_right(device_class,hostname) (ceph_osd_stat_bytes_used / ceph_osd_stat_bytes)) >= 0.80
+      for: 40s
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDFlapping
+      annotations:
+    {% raw %}
+        description: Storage daemon {{ $labels.ceph_daemon }} has restarted 5 times in last 5 minutes. Please check the pod events or ceph status to find out the cause.
+    {% endraw %}
+        message: Ceph storage osd flapping.
+        severity_level: error
+        storage_type: ceph
+      expr: changes(ceph_osd_up[5m]) >= 10
+      for: 0s
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDNearFull
+      annotations:
+    {% raw %}
+        description: Utilization of storage device {{ $labels.ceph_daemon }} of device_class type {{$labels.device_class}} has crossed 75% on host {{ $labels.hostname }}. Immediately free up some space or add capacity of type {{$labels.device_class}}.
+    {% endraw %}
+        message: Back-end storage device is nearing full.
+        severity_level: warning
+        storage_type: ceph
+      expr: (ceph_osd_metadata * on (ceph_daemon) group_right(device_class,hostname) (ceph_osd_stat_bytes_used / ceph_osd_stat_bytes)) >= 0.75
+      for: 40s
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDDiskNotResponding
+      annotations:
+    {% raw %}
+        description: Disk device {{ $labels.device }} not responding, on host {{ $labels.host }}.
+    {% endraw %}
+        message: Disk not responding
+        severity_level: error
+        storage_type: ceph
+      expr: label_replace((ceph_osd_in == 1 and ceph_osd_up == 0),"disk","$1","ceph_daemon","osd.(.*)") + on(ceph_daemon) group_left(host, device) label_replace(ceph_disk_occupation,"host","$1","exported_instance","(.*)")
+      for: 15m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDDiskUnavailable
+      annotations:
+    {% raw %}
+        description: Disk device {{ $labels.device }} not accessible on host {{ $labels.host }}.
+    {% endraw %}
+        message: Disk not accessible
+        severity_level: error
+        storage_type: ceph
+      expr: label_replace((ceph_osd_in == 0 and ceph_osd_up == 0),"disk","$1","ceph_daemon","osd.(.*)") + on(ceph_daemon) group_left(host, device) label_replace(ceph_disk_occupation,"host","$1","exported_instance","(.*)")
+      for: 1m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephOSDSlowOps
+      annotations:
+    {% raw %}
+        description: '{{ $value }} Ceph OSD requests are taking too long to process. Please check ceph status to find out the cause.'
+    {% endraw %}
+        message: OSD requests are taking too long to process.
+        severity_level: warning
+        storage_type: ceph
+      expr: ceph_healthcheck_slow_ops > 0
+      for: 30s
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephDataRecoveryTakingTooLong
+      annotations:
+        description: Data recovery has been active for too long. Contact Support.
+        message: Data recovery is slow
+        severity_level: warning
+        storage_type: ceph
+      expr: ceph_pg_undersized > 0
+      for: 2h
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+    - alert: CephPGRepairTakingTooLong
+      annotations:
+        description: Self heal operations taking too long. Contact Support.
+        message: Self heal problems detected
+        severity_level: warning
+        storage_type: ceph
+      expr: ceph_pg_inconsistent > 0
+      for: 1h
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.ceph }}
+{% endif %}

@@ -1,0 +1,47 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+# Generated from 'elasticsearch.system.alerts' group
+# Do not change in-place! In order to change this file first read following link:
+# https://git.daimler.com/CCP/platform-infrastructure/tree/master/scripts/prometheus-rules-generator.py
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: "elasticsearch.system.alerts"
+  namespace: {{ k8s_namespace }}
+spec:
+{% if not prometheus_rules.elasticsearch %}
+  groups: []
+{% else %}
+  groups:
+  - name: elasticsearch.system.alerts
+    rules:
+    - alert: ElasticsearchNodeDiskWatermarkReached
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}][{{ $labels.node }}] has disk usage of {{ $value | humanizePercentage }}. Add more disk space, or free up space.'
+    {% endraw %}
+        summary: Some shards will be re-allocated to different nodes if possible.
+      expr: |-
+        max by (cluster, instance, node,) (
+          1 - (elasticsearch_filesystem_data_free_bytes{job=~"elasticsearch.*"} / elasticsearch_filesystem_data_size_bytes{job=~"elasticsearch.*"})
+        ) > 0.84999999999999998
+      for: 5m
+      labels:
+        severity: warning
+        notify_team: {{ prometheus_alert_teams.infra }}
+    - alert: ElasticsearchNodeDiskWatermarkReached
+      annotations:
+    {% raw %}
+        description: '[{{ $labels.cluster }}][{{ $labels.node }}] has disk usage of {{ $value | humanizePercentage }}. Add more disk space, or free up space.'
+    {% endraw %}
+        summary: Some shards will be re-allocated to different nodes if possible.
+      expr: |-
+        max by (cluster, instance, node,) (
+          1 - (elasticsearch_filesystem_data_free_bytes{job=~"elasticsearch.*"} / elasticsearch_filesystem_data_size_bytes{job=~"elasticsearch.*"})
+        ) > 0.90000000000000002
+      for: 5m
+      labels:
+        severity: critical
+        notify_team: {{ prometheus_alert_teams.infra }}
+{% endif %}
