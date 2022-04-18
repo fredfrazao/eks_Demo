@@ -37,5 +37,8 @@ ANSIBLE_PLAYBOOK :=  pipenv run  ansible-playbook  $(INVENTORIES) $(ANSIBLE_EXTR
 install_prometheus:  ## deploy monitoring stack
 	$(ANSIBLE_PLAYBOOK) ansible/monitoring_install.yml --tags setup_components
 
+get-kubeconfig: init-terraform ## get-kubeconfig
+	aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)
+
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
