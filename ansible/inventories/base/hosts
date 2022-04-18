@@ -1,4 +1,4 @@
 # placeholder
 
-[prometheus]
+[localhost]
 localhost ansible_connection=local

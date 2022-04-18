@@ -3,6 +3,7 @@
 
 ENV ?= dev
 
+
 init-terraform:  ## Setup Terraform and validate
 	 terraform init
 
@@ -30,18 +31,8 @@ cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
 install-ansible-collections: ## install ansible collections
 	ansible-galaxy collection install --collections-path ansible/collections --requirements-file ansible/collections/requirements.yml --force
 
-KUBECONFIG_FILE ?= ''
-HW_INVENTORY_ARG ?=
 
-ifeq ($(ENV),base)
-	HW_INVENTORY_ARG=
-endif
 
-ifneq ("$(wildcard .vault_$(ENV))","")
-    ANSIBLE_VAULT_PASSWORD_FILE=.vault_$(ENV)
-else
-    ANSIBLE_VAULT_PASSWORD_FILE=~/.vault_$(ENV)
-endif
 
 
 ANSIBLE_PLAYBOOK :=  ansible-playbook  $(INVENTORIES) $(ANSIBLE_EXTRA_VARS)
