@@ -79,7 +79,7 @@ jobs:
     - name: Terraform Init
       run: terraform init
   
-    # Generates an execution plan for Terraform
+    # Generates an execution plan for Terraform test
     - name: Terraform Plan
       run: terraform plan -input=false
 
