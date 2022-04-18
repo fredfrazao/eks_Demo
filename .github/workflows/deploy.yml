@@ -1,4 +1,4 @@
-name: 'ci-Terraform' 
+name: 'Deploy eks' 
 
 on: 
   workflow_dispatch:
@@ -9,9 +9,9 @@ permissions:
 
 jobs:
   terraform:
-    name: 'Ci Terraform'
+    name: 'Deploy eks'
     runs-on: ubuntu-latest
-    environment: dev
+    environment: test
 
     defaults:
       run:
