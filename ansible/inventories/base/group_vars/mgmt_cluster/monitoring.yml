@@ -3,7 +3,7 @@ thanos_store_service_account_base64: "{{ vault_thanos_store_service_account_base
 
 prometheus_blackbox_enabled: true
 
-prometheus_namespace_team_label: label_cloudmobility_io_team
+prometheus_namespace_team_label: label_frazao_io_team
 
 alertmanager_values:
   enabled: true
@@ -97,13 +97,13 @@ prometheus_config:
 monitoring_grafana_admin_pass: "{{ vault_monitoring_k8s_grafana_admin_pass }}"
 grafana_admin_pass: "{{ vault_monitoring_k8s_grafana_admin_pass }}"
 grafana_keycloak_secret: "{{ vault_grafana_keycloak_secret }}"
-grafana_host: "grafana.{{ system_dns_bind_zone_domains.internal.name }}"
+grafana_host: "grafana.{{ system_dns_bind_zone_domains }}"
 
 grafana:
   enabled: true
   # ingress:
   #   extraHosts:
-  #   - name: "grafana.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains.internal.name }}"
+  #   - name: "grafana.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains }}"
   #     path: /
   resources:
     limits:
@@ -118,7 +118,7 @@ grafana_datasources:
     type: prometheus
     access: proxy
     orgId: 1
-    url: "https://thanos.{{ system_dns_bind_zone_domains.internal.name }}"
+    url: "https://thanos.{{ system_dns_bind_zone_domains }}"
     version: 1
     editable: true
     isDefault: true

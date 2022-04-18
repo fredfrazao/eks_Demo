@@ -1,5 +1,6 @@
 ---
-k8s_namespace: cmy-monitoring
+k8s_namespace: monitoring
+system_dns_bind_zone_domains: frazao.cloud
 compute_sre_resource_labels: some-compute-lable
 prometheus_operator_chart_release_name: cmy-prometheus-operator
 k8s_prometheus_scrape_config_secret_name: cmy-prometheus-scrape-config
@@ -12,12 +13,12 @@ monitoring_region_name: "{{ region_name }}"
 monitoring_zone_name: "{{ zone_name }}"
 
 # Default hostname exposed through ingress
-prometheus_host: "prometheus.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains.internal.name }}"
-alertmanager_host: "alertmanager.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains.internal.name }}"
+prometheus_host: "prometheus.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains }}"
+alertmanager_host: "alertmanager.{{ monitoring_k8s_cluster }}.{{ system_dns_bind_zone_domains }}"
 
 # Default prometheus monitoring configuration
-k8s_prometheus_monitor_prefix: cmy-monitoring
-prometheus_namespace_team_label: label_cloudmobility_io_team
+k8s_prometheus_monitor_prefix: monitoring
+prometheus_namespace_team_label: label_frazao_io_team
 prometheus_namespaces: "{{ k8s_prometheus_monitor_prefix }}.*|kube-system|kube-public|kube-node-lease"
 
 # Default prometheus monitoring labels extend by group
@@ -30,7 +31,6 @@ prometheus_alerts:
   kubeControllerManagerDown: true
   kubeSchedulerDown: true
   kubeletDown: true
-  # todo: enable if k8s version >= 1.18 on target: https://cloudmobility.atlassian.net/browse/PIN-596?focusedCommentId=13476
   aggregatedAPIDown: false
 
 # Default prometheus monitoring alert teams
