@@ -32,10 +32,7 @@ install-ansible-collections: ## install ansible collections
 	ansible-galaxy collection install --collections-path ansible/collections --requirements-file ansible/collections/requirements.yml --force
 
 
-
-
-
-ANSIBLE_PLAYBOOK :=  ansible-playbook  $(INVENTORIES) $(ANSIBLE_EXTRA_VARS)
+ANSIBLE_PLAYBOOK :=  pipenv run  ansible-playbook  $(INVENTORIES) $(ANSIBLE_EXTRA_VARS)
 
 install_prometheus:  ## deploy monitoring stack
 	$(ANSIBLE_PLAYBOOK) ansible/monitoring_install.yml --tags setup_components
