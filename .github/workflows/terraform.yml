@@ -45,10 +45,12 @@
 name: 'ci-Terraform'
 
 on:
-  push:
-    branches:
-    - main
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'ci'
+        required: true
+        default: 'ci'
 
 permissions:
   contents: read
@@ -57,7 +59,7 @@ jobs:
   terraform:
     name: 'Ci Terraform'
     runs-on: ubuntu-latest
-    environment: production
+    environment: "${{ github.event.inputs.env == 'CI' }}"
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
