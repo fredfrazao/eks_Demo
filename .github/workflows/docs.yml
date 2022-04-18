@@ -27,7 +27,6 @@ jobs:
       uses: Dirrk/terraform-docs@v1.0.8
       with:
         tf_docs_working_dir: . 
-        tf_docs_find_dir: enable 
         tf_docs_output_file:  USAGE.md 
         tf_docs_git_commit_message: automated action 
   
