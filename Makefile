@@ -59,13 +59,13 @@ init-terraform:  ## Setup Terraform and validate
 	 terraform init 
 	 terraform validate 
 
-setup-eks-cluster:  ## Setup eks cluster
-	 terraform init 
-	 terraform apply  -auto-approve 
+plan-terraform:  ## Setup Terraform and validate 
+	 terraform plan -input=false 
+	 
+setup-eks-cluster:  init-terraform plan-terraform ## Setup eks cluster
+	 terraform apply  -auto-approve -input=false
 
-
-destroy-eks-cluster:  ## destroy eks cluster
-	terraform init 
+destroy-eks-cluster: init-terraform ## destroy eks cluster
 	terraform destroy -auto-approve 
 
 get-kubeconfig:  ## get kubeconfig and update ./kube
