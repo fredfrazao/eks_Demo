@@ -1,4 +1,5 @@
 
+[![ci-Terraform](https://github.com/fredfrazao/eks_Demo/actions/workflows/terraform.yml/badge.svg?event=deployment_status)](https://github.com/fredfrazao/eks_Demo/actions/workflows/terraform.yml)
 
 # Prerequisites
 ```
