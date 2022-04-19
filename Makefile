@@ -27,8 +27,9 @@ destroy-eks-cluster: init-terraform  ## destroy eks cluster
 	terraform destroy -auto-approve
 
 ci-terraform-configs:   ## update eks cluster configurations
-	sed -i 's/prod/ci/' eks-cluster.tf
-	sed -i 's/frazao/ci-frazao/' eks-cluster.tf
+	 sed -i -e  's/prod/ci/g' eks-cluster.tf
+	 sed -i -e  's/frazao/ci-frazao/g' eks-cluster.tf
+	 rm -rf eks-cluster.tf-e
 
 
 cleanup: destroy-eks-cluster tf-ns-delete ## cleanup

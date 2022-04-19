@@ -35,6 +35,9 @@ jobs:
     - name: Terraform Plan
       run: make tf-plan
 
+    - name: ci-terraform-configs
+      run: make ci-terraform-configs
+
     - name: Terraform Apply
       run: make setup-eks-cluster
 
