@@ -31,12 +31,12 @@ jobs:
         
     - name: Terraform Init
       run: make init-terraform
-  
+
+    - name: ci-terraform-confi
+      run: make ci-terraform-configs
+
     - name: Terraform Plan
       run: make tf-plan
-
-    - name: ci-terraform-configs
-      run: make ci-terraform-configs
 
     - name: Terraform Apply
       run: make setup-eks-cluster
