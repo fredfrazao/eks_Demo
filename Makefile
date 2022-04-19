@@ -26,6 +26,11 @@ setup-eks-cluster:  init-terraform tf-plan ## Setup eks cluster
 destroy-eks-cluster: init-terraform  ## destroy eks cluster
 	terraform destroy -auto-approve
 
+ci-terraform-configs:   ## update eks cluster configurations
+	sed -i 's/prod/ci/' eks-cluster.tf
+	sed -i 's/frazao/ci-frazao/' eks-cluster.tf
+
+
 cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
 
 install-ansible-collections: ## install ansible collections
