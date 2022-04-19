@@ -34,10 +34,25 @@ install-ansible-collections: ## install ansible collections
 
 ANSIBLE_PLAYBOOK :=  pipenv run  ansible-playbook  $(INVENTORIES) $(ANSIBLE_EXTRA_VARS)
 
-install_prometheus:  ## deploy monitoring stack
-	$(ANSIBLE_PLAYBOOK) ansible/monitoring_install.yml --tags setup_components
+install-components:  ## components installation
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_components
 
-get-kubeconfig: init-terraform ## get-kubeconfig
+install-pre-components:  ## pre packages installation
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_pre
+
+install-grafana:  ## grafana installation
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_grafana_operator
+
+install-prometheus:  ## setup_prometheus_operator
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_prometheus_operator
+
+install-argo-cd:  ## setup argo-cd
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_argocd
+
+install-setup_consul:  ## setup consul
+	$(ANSIBLE_PLAYBOOK) ansible/components_install.yml --tags setup_consul
+
+get-kubeconfig:  ## get-kubeconfig
 	aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name)
 
 help:
