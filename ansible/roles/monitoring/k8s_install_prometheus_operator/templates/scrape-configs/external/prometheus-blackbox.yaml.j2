@@ -1,7 +1,0 @@
-{% if prometheus_monitor_components.external.blackbox %}
-- job_name: 'prometheus-blackbox-exporter'
-  honor_labels: true
-  static_configs:
-    - targets:
-      -  cmy-prometheus-blackbox.{{ k8s_namespace }}.svc.cluster.local:9115
-{% endif %}
