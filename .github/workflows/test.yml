@@ -10,7 +10,7 @@ on:
       clusterenv:
         description: 'ENV: ci, dev or prod'
         required: true
-        default: 'ci'
+        default: 'dev'
 
 
 permissions:
