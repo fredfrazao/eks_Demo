@@ -8,6 +8,7 @@ ANSIBLE_DIR= ansible
 INVENTORIES= $(ANSIBLE_DIR)/inventories/$(ENV)
 ANSIBLE_DEFAULT_VARS= $(ANSIBLE_DIR)/inventories/all
 ANSIBLE_EXTRA_VARS= --extra-var "env=$(ENV) CLUSTER=$(CLUSTER)"
+TerraformWS=$(ENV)_$(CLUSTER)
 
 ANSIBLE_PLAYBOOK :=  pipenv run  ansible-playbook -i $(ANSIBLE_DEFAULT_VARS) -i $(INVENTORIES)  $(ANSIBLE_EXTRA_VARS)
 
@@ -15,7 +16,8 @@ get-vars: ## debug vars
 	 echo INFRA_DIR: $(INFRA_DIR)
 	 echo CLUSTER: $(CLUSTER)
 	 echo ENV: $(ENV)
-	 echo INVENTORIES: $(INVENTORIES)
+	 echo ws : $(TerraformWS)
+	 echo ci : ci_$(TerraformWS)
 
 
 init-terraform:  ## Setup Terraform and validate
@@ -31,21 +33,21 @@ tf-ns-delete:  ##  Terraform  delete ns
 tf-validate:  ##  Terraform and validate
 	 terraform -chdir=$(INFRA_DIR) validate
 
-tf-plan: get-vars init-terraform tf-validate ## Generate Plan
+tf-plan:init-terraform tf-validate ## Generate Plan
 	 terraform -chdir=$(INFRA_DIR) plan  -input=false -compact-warnings
 
-setup-eks-cluster: get-vars  init-terraform tf-plan ## Setup eks cluster
+setup-eks-cluster:  init-terraform tf-plan ## Setup eks cluster
 	 terraform -chdir=$(INFRA_DIR) apply -auto-approve -input=false -compact-warnings
 
-destroy-eks-cluster: get-vars  init-terraform  ## destroy eks cluster
+destroy-eks-cluster:  init-terraform  ## destroy eks cluster
 	terraform -chdir=$(INFRA_DIR) destroy -auto-approve
 
 ci-terraform-configs:  ## update Terraform Workspace and cluster_name with CI-configurations
-	 sed -i -e  's/Terraform_CLUSTER_Workspace/ci/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/ci_$(TerraformWS)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
 	 sed -i -e  's/Terraform_CLUSTER_Workspace/ci-$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
 
 terraform-configs:  ## update Terraform Workspace and cluster_name configurations
-	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(ENV)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(TerraformWS)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
 	 sed -i -e  's/CLUSTER_Workspace/$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
 
 cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
