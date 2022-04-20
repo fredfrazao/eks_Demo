@@ -1,4 +1,4 @@
-name: 'ci'
+name: 'Deploy eks' 
 
 on:
   workflow_dispatch:
@@ -12,14 +12,18 @@ on:
         required: true
         default: 'ci'
 
+
 permissions:
   contents: read
 
 jobs:
   terraform:
-    name: 'Ci'
+    name: 'Deploy eks'
     runs-on: ubuntu-latest
-    environment: ci
+    environment:  ${{ github.event.inputs.ENV }}
+      env:
+        ENV:  ${{ github.event.inputs.ENV }}
+        K8S_CLUSTER_ENV: ${{ github.event.inputs.cluster }}
 
     defaults:
       run:
@@ -34,18 +38,10 @@ jobs:
       with:
         terraform_version: 1.1.8
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        
-    - name: Terraform Init
-      run: make init-terraform
 
-    - name: ci-terraform-confi
-      run: make ci-terraform-configs
+    - name: set-terraform-cluster-configs
+      run: set-terraform-configs
 
-    - name: Terraform Plan
-      run: make tf-plan CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.ENV }}
+    - name: setup-eks-cluster
+      run: make setup-eks-cluster CLUSTER=${{ K8S_CLUSTER}} ENV=${{ K8S_CLUSTER_ENV}}
 
-    - name: Terraform Apply
-      run: make setup-eks-cluster CLUSTER=${{ github.event.inputs.cluster }} ENV=ci
-
-    - name: Terraform destroy
-      run: make destroy-eks-cluster
