@@ -21,9 +21,7 @@ jobs:
     name: 'Deploy eks'
     runs-on: ubuntu-latest
     environment:  ${{ github.event.inputs.ENV }}
-      env:
-        ENV:  ${{ github.event.inputs.ENV }}
-        K8S_CLUSTER_ENV: ${{ github.event.inputs.cluster }}
+
 
     defaults:
       run:
@@ -43,5 +41,5 @@ jobs:
       run: set-terraform-configs
 
     - name: setup-eks-cluster
-      run: make setup-eks-cluster CLUSTER=${{ K8S_CLUSTER}} ENV=${{ K8S_CLUSTER_ENV}}
+      run: make setup-eks-cluster CLUSTER= ${{ github.event.inputs.cluster }} ENV= ${{ github.event.inputs.ENV }}
 
