@@ -35,7 +35,7 @@ terraform {
   required_version = ">= 0.14"
 }
 locals {
-  cluster_name = "Terraform_CLUSTER_NAME"
+  cluster_name = "CLUSTER_NAME"
 }
 
 
