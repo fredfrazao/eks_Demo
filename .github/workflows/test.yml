@@ -6,7 +6,7 @@ on:
       cluster:
         description: 'Cluster: atlas, maia'
         required: true
-        default: 'atlas'
+        default: 'maia'
       clusterenv:
         description: 'ENV: ci, dev or prod'
         required: true
