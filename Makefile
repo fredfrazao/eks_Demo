@@ -41,9 +41,8 @@ destroy-eks-cluster: get-vars  init-terraform  ## destroy eks cluster
 	terraform -chdir=$(INFRA_DIR) destroy -auto-approve
 
 ci-terraform-configs:  ## update Terraform Workspace and cluster_name with CI-configurations
-	 sed -i -e  's/prod/ci/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
-	 sed -i -e  's/frazao/ci-$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
-	 sed -i -e  's/to_replace/ci/g' $(INFRA_DIR)/vars.tf && rm -rf $(INFRA_DIR)/vars.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/ci/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/ci-$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
 
 terraform-configs:  ## update Terraform Workspace and cluster_name configurations
 	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(ENV)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
