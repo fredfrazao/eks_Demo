@@ -39,7 +39,7 @@ jobs:
       run: make init-terraform
 
     - name: ci-terraform-confi
-      run: make ci-terraform-configs
+      run: make ci-terraform-configs CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.ENV }}
 
     - name: Terraform Plan
       run: make tf-plan CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.ENV }}
@@ -48,4 +48,4 @@ jobs:
       run: make setup-eks-cluster CLUSTER=${{ github.event.inputs.cluster }} ENV=ci
 
     - name: Terraform destroy
-      run: make destroy-eks-cluster
+      run: make destroy-eks-cluster CLUSTER=${{ github.event.inputs.cluster }}
