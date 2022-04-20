@@ -32,7 +32,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: get vars
-      run: make get-vars  CLUSTER= ${{ github.event.inputs.cluster }} ENV= ${{ github.event.inputs.clusterenv }}
+      run: make get-vars  CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.clusterenv }}
 
     - name: set-terraform-cluster-configs
       run: make terraform-configs  CLUSTER= ${{ github.event.inputs.cluster }} ENV= ${{ github.event.inputs.clusterenv }}
