@@ -46,9 +46,8 @@ ci-terraform-configs:  ## update Terraform Workspace and cluster_name with CI-co
 	 sed -i -e  's/to_replace/ci/g' $(INFRA_DIR)/vars.tf && rm -rf $(INFRA_DIR)/vars.tf-e
 
 terraform-configs:  ## update Terraform Workspace and cluster_name configurations
-	 sed -i -e  's/prod/$(ENV)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
-	 sed -i -e  's/frazao/$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
-	 sed -i -e  's/to_replace/$(ENV)/g' $(INFRA_DIR)/vars.tf && rm -rf $(INFRA_DIR)/vars.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(ENV)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
+	 sed -i -e  's/CLUSTER_Workspace/$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
 
 cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
 

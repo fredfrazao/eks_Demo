@@ -1,3 +1,3 @@
 locals {
-  cluster_name = "atlas"
+  cluster_name = "Terraform_CLUSTER_NAME"
 }
