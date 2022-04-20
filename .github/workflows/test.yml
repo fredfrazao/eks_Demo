@@ -7,7 +7,7 @@ on:
         description: 'Cluster: atlas, maia'
         required: true
         default: 'atlas'
-      ENV:
+      clusterenv:
         description: 'ENV: ci, dev or prod'
         required: true
         default: 'ci'
@@ -20,7 +20,7 @@ jobs:
   terraform:
     name: 'Deploy cluster'
     runs-on: ubuntu-latest
-    environment:  ${{ github.event.inputs.ENV }}
+    environment:  ${{ github.event.inputs.clusterenv }}
 
 
     defaults:
@@ -41,5 +41,5 @@ jobs:
       run: make terraform-configs
 
     - name: setup-eks-cluster
-      run: make setup-eks-cluster CLUSTER= ${{ github.event.inputs.cluster }} ENV= ${{ github.event.inputs.ENV }}
+      run: make setup-eks-cluster CLUSTER= ${{ github.event.inputs.cluster }} ENV= ${{ github.event.inputs.clusterenv }}
 

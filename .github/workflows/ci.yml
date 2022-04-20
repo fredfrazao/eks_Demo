@@ -7,7 +7,7 @@ on:
         description: 'Cluster: atlas, maia'
         required: true
         default: 'atlas'
-      ENV:
+      clusterenv:
         description: 'ENV: ci, dev or prod'
         required: true
         default: 'ci'
@@ -39,10 +39,10 @@ jobs:
       run: make init-terraform
 
     - name: ci-terraform-confi
-      run: make ci-terraform-configs CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.ENV }}
+      run: make ci-terraform-configs CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.clusterenv }}
 
     - name: Terraform Plan
-      run: make tf-plan CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.ENV }}
+      run: make tf-plan CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.clusterenv }}
 
     - name: Terraform Apply
       run: make setup-eks-cluster CLUSTER=${{ github.event.inputs.cluster }} ENV=ci
