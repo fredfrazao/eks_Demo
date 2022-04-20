@@ -32,7 +32,7 @@ jobs:
     - name: ci-terraform-confi
       run: make ci-terraform-configs CLUSTER=${{ github.event.inputs.cluster }} ENV=ci
 
-      
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
