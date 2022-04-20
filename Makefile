@@ -44,11 +44,13 @@ destroy-eks-cluster:  init-terraform  ## destroy eks cluster
 
 ci-terraform-configs:  ## update Terraform Workspace and cluster_name with CI-configurations
 	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(TerraformWS)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
-	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(TerraformWS)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
+	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(TerraformWS)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
+	 sed -i -e  's/vpc_replace/$(TerraformWS)/g' $(INFRA_DIR)/vpc.tf && rm -rf $(INFRA_DIR)/vpc.tf-e
 
 terraform-configs:  ## update Terraform Workspace and cluster_name configurations
 	 sed -i -e  's/Terraform_CLUSTER_Workspace/$(TerraformWS)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
 	 sed -i -e  's/CLUSTER_Workspace/$(CLUSTER)/g' $(INFRA_DIR)/locals.tf && rm -rf $(INFRA_DIR)/locals.tf-e
+	 sed -i -e  's/vpc_replace/$(TerraformWS)/g' $(INFRA_DIR)/vpc.tf && rm -rf $(INFRA_DIR)/vpc.tf-e
 
 cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
 
