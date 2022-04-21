@@ -3,7 +3,7 @@
 
 ENV ?= prod
 CLUSTER ?= maia
-INFRA_DIR= "./infra/$(CLUSTER)"
+INFRA_DIR= "./infra"
 ANSIBLE_DIR= ansible
 INVENTORIES= $(ANSIBLE_DIR)/inventories/$(ENV)
 ANSIBLE_DEFAULT_VARS= $(ANSIBLE_DIR)/inventories/all
@@ -52,7 +52,6 @@ terraform-configs:  ## update Terraform Workspace and cluster_name configuration
 	 sed -i -e  's/CLUSTER_NAME/$(CLUSTER)/g' $(INFRA_DIR)/main.tf && rm -rf $(INFRA_DIR)/main.tf-e
 	 sed -i -e  's/vpc_1/$(TerraformWS)/g' $(INFRA_DIR)/vpc.tf && rm -rf $(INFRA_DIR)/vpc.tf-e
 
-cleanup: destroy-eks-cluster tf-ns-delete ## cleanup
 
 install-ansible-collections: ## install ansible collections
 	ansible-galaxy collection install --collections-path $(ANSIBLE_DIR)/collections --requirements-file $(ANSIBLE_DIR)/collections/requirements.yml --force
