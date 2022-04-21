@@ -1,5 +1,5 @@
 ---
-- name: Create the namespace monitoring
+- name: Create the namespace harbor
   community.kubernetes.k8s:
     kubeconfig: "{{ kubeconfig_file }}"
     state: present
@@ -7,15 +7,17 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: monitoring
+        name: harbor
 
-- name: grafana-operator  chart
+- name: harbor
   community.kubernetes.helm:
     atomic: true
     chart_repo_url: https://charts.bitnami.com/bitnami
     kubeconfig: "{{ kubeconfig_file }}"
-    namespace: monitoring
-    name: grafana-operator
-    chart_ref: grafana-operator
-    chart_version: 2.3.7
+    namespace: harbor
+    name: harbor
+    chart_ref: harbor
+    chart_version: 12.3.4
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
     wait_timeout: 10m
+

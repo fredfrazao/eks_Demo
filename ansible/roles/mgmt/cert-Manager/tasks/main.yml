@@ -1,5 +1,5 @@
 ---
-- name: Create the namespace monitoring
+- name: Create the namespace cert-manager
   community.kubernetes.k8s:
     kubeconfig: "{{ kubeconfig_file }}"
     state: present
@@ -7,15 +7,17 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: monitoring
+        name: cert-manager
 
-- name: grafana-operator  chart
+- name: cert-manager
   community.kubernetes.helm:
     atomic: true
     chart_repo_url: https://charts.bitnami.com/bitnami
     kubeconfig: "{{ kubeconfig_file }}"
-    namespace: monitoring
-    name: grafana-operator
-    chart_ref: grafana-operator
-    chart_version: 2.3.7
+    namespace: cert-manager
+    name: cert-manager
+    chart_ref: cert-manager
+    chart_version: 0.4.17
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
     wait_timeout: 10m
+

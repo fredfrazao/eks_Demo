@@ -17,6 +17,6 @@
     namespace: argocd
     name: argo-cd
     chart_ref: argo-cd
-    chart_version: 3.1.12
+    chart_version: 3.1.13
     wait_timeout: 10m
 

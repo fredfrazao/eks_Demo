@@ -9,13 +9,13 @@
       metadata:
         name: monitoring
 
-- name: grafana-operator  chart
+- name: Kibana chart
   community.kubernetes.helm:
     atomic: true
     chart_repo_url: https://charts.bitnami.com/bitnami
     kubeconfig: "{{ kubeconfig_file }}"
     namespace: monitoring
-    name: grafana-operator
-    chart_ref: grafana-operator
-    chart_version: 2.3.7
+    name: Kibana
+    chart_ref: Kibana
+    chart_version: 17.9.27
     wait_timeout: 10m

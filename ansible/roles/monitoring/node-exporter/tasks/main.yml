@@ -7,15 +7,15 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: monitoring
+        name: node-exporter
 
-- name: grafana-operator  chart
+- name: Elasticsearch chart
   community.kubernetes.helm:
     atomic: true
     chart_repo_url: https://charts.bitnami.com/bitnami
     kubeconfig: "{{ kubeconfig_file }}"
-    namespace: monitoring
-    name: grafana-operator
-    chart_ref: grafana-operator
-    chart_version: 2.3.7
+    namespace: node-exporter
+    name: node-exporter
+    chart_ref: node-exporter
+    chart_version: 17.9.27
     wait_timeout: 10m
