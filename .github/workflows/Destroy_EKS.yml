@@ -1,4 +1,4 @@
-name: 'destroy Cluster'
+name: 'Destoy Cluster'
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   terraform:
-    name: 'destroy cluster'
+    name: 'Destoy cluster'
     runs-on: ubuntu-latest
     environment:  ${{ github.event.inputs.clusterenv }}
 
@@ -40,6 +40,7 @@ jobs:
       with:
         terraform_version: 1.1.8
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
 
     - name: Terraform destroy
       run: make destroy-eks-cluster CLUSTER=${{ github.event.inputs.cluster }} ENV=${{ github.event.inputs.clusterenv }}

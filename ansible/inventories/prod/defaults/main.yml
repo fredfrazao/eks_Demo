@@ -1,2 +1,10 @@
 ---
+alertmanager:
+  hostname: alertmanager.{{ DNSNAME }}
+  livenessProbeEnabled: "true"
+  group_interval: "15m"
+  group_wait: "30s"
+  repeat_interval: "1h"
+  replicaCount: "2"
+  retention: "10h"
 

@@ -1,2 +1,4 @@
 ---
 kubeconfig_file:  "~/.kube/config"
+DNSNAME: "frazao.cloud"
+alertmanager_hostname: alertmanager.{{ CLUSTER }}.{{ DNSNAME }}

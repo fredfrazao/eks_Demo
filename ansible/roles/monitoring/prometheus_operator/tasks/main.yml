@@ -19,4 +19,5 @@
     name: prometheus-operator
     chart_ref: kube-prometheus
     chart_version: 6.3.0
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
     wait_timeout: 10m

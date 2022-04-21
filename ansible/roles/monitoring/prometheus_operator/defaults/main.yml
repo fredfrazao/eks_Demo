@@ -1,2 +1,21 @@
 ---
 kubeconfig_file:  "~/.kube/config"
+DNSNAME: 'frazao.cloud'
+
+alertmanager:
+  enabled: "true"
+  hostname: "alertmanager.{{ DNSNAME }}"
+  livenessProbeEnabled: "true"
+  group_interval: "5m"
+  group_wait: "30s"
+  repeat_interval: "12h"
+  externalUrl: "alertmanager.{{ DNSNAME }}"
+  imageregistry: "docker.io"
+  imagerepository: "bitnami/alertmanager"
+  imagetag: "0.23.0-debian-10-r61"
+  logFormat: "logfmt"
+  logLevel: "info"
+  readinessProbeenabled: "true"
+  replicaCount: "1"
+  retention: "120h"
+  serviceMonitorenabled: "true"

@@ -1,0 +1,39 @@
+alertmanager:
+  additionalPeers: []
+  affinity: {}
+  config:
+    route:
+      group_by:
+      - job
+      group_interval: {{ alertmanager.group_interval  }}
+      group_wait: {{ alertmanager.group_wait }}
+      receiver: "null"
+      repeat_interval: {{ alertmanager.repeat_interval }}
+      routes:
+      - match:
+          alertname: Watchdog
+        receiver: "null"
+  containers: []
+  enabled: {{ alertmanager.enabled }}
+  externalUrl: {{ alertmanager.externalUrl }}
+  image:
+    pullSecrets: []
+    registry: {{ alertmanager.imageregistry }}
+    repository: {{ alertmanager.imagerepository }}
+    tag: {{ alertmanager.imagetag }}
+  ingress:
+    hostname:  {{ alertmanager.hostname }}
+  listenLocal: false
+  livenessProbe:
+    enabled: {{ alertmanager.livenessProbeEnabled }}
+  logFormat:  {{ alertmanager.logFormat }}
+  logLevel: {{ alertmanager.logLevel }}
+  readinessProbe:
+    enabled: {{ alertmanager.readinessProbeenabled }}
+  replicaCount: {{ alertmanager.replicaCount }}
+  retention: {{ alertmanager.retention }}
+  serviceAccount:
+    create: true
+    name: ""
+  serviceMonitor:
+    enabled: {{ alertmanager.serviceMonitorenabled }}

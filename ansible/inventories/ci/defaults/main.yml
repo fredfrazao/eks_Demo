@@ -1,2 +1,2 @@
 ---
-
+alertmanager_hostname: alertmanager.ci.{{ DNSNAME }}
