@@ -4,6 +4,10 @@
 
 ### Other
 
+- Merge pull request #10 from fredfrazao/feat-something ([#10](https://github.com/fredfrazao/eks_Demo/issues/10)) [`33fc033c`](https://github.com/fredfrazao/eks_Demo/commit/33fc033c2e1fb48098af12189100d560a05bc0bc)
+
+    *feat: something*
+- Update Makefile [`fe75ad87`](https://github.com/fredfrazao/eks_Demo/commit/fe75ad87acd2c8329c29db3346ed202653266063)
 - Merge pull request #9 from fredfrazao/fredfrazao-patch-5 ([#9](https://github.com/fredfrazao/eks_Demo/issues/9)) [`4a2dd013`](https://github.com/fredfrazao/eks_Demo/commit/4a2dd013ff2047fd73addb8837f8488e4632b835)
 
     *Update README.md*
