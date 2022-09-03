@@ -1,6 +1,6 @@
 ---
 alertmanager:
-  hostname: alertmanager.{{ DNSNAME }}
+  hostname: alertmanager.{{ DNSNAME }} 
   livenessProbeEnabled: "true"
   group_interval: "15m"
   group_wait: "30s"
