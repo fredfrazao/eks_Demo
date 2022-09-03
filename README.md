@@ -1,6 +1,6 @@
 
 
-# Prerequisites
+# Prerequisites. 
 ```
 - a AWS account 
 - a configured AWS CLI
