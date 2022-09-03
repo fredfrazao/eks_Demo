@@ -4,6 +4,7 @@
 
 ### Other
 
+- Update main.yml (#11) [`8dda4f4d`](https://github.com/fredfrazao/eks_Demo/commit/8dda4f4dec4241614a941cf0164500434dd43bd3)
 - Merge pull request #10 from fredfrazao/feat-something ([#10](https://github.com/fredfrazao/eks_Demo/issues/10)) [`33fc033c`](https://github.com/fredfrazao/eks_Demo/commit/33fc033c2e1fb48098af12189100d560a05bc0bc)
 
     *feat: something*
