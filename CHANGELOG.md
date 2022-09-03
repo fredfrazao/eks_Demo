@@ -4,9 +4,13 @@
 
 ### Other
 
+- Merge pull request #9 from fredfrazao/fredfrazao-patch-5 ([#9](https://github.com/fredfrazao/eks_Demo/issues/9)) [`4a2dd013`](https://github.com/fredfrazao/eks_Demo/commit/4a2dd013ff2047fd73addb8837f8488e4632b835)
+
+    *Update README.md*
 - Merge pull request #7 from fredfrazao/fredfrazao-patch-3 ([#7](https://github.com/fredfrazao/eks_Demo/issues/7)) [`0e831071`](https://github.com/fredfrazao/eks_Demo/commit/0e831071ed24c0b196a989a9356e8c6678675f8d)
 
     *Create test.yml*
+- Update README.md [`5c347fb1`](https://github.com/fredfrazao/eks_Demo/commit/5c347fb1a80e20a510630f1dfc74bc61a550c461)
 - Create test.yml [`ed7334f3`](https://github.com/fredfrazao/eks_Demo/commit/ed7334f3b7b56ff377fa23f85846e5503ff6a550)
 - Merge pull request #6 from fredfrazao/fredfrazao-patch-2 ([#6](https://github.com/fredfrazao/eks_Demo/issues/6)) [`9efd1c98`](https://github.com/fredfrazao/eks_Demo/commit/9efd1c98ab58c38d1b9dc879f98c3ef66e321ae9)
 
