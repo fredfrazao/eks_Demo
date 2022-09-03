@@ -2,7 +2,7 @@
 
 # Prerequisites. 
 ```
-- a AWS account 
+- a AWS account    
 - a configured AWS CLI
 - AWS IAM Authenticator
 - terraform >= 0.14
