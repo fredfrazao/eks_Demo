@@ -5,20 +5,15 @@ on:
     branches: [ main, master]
 
 jobs:
-  changelog:
-    name: Update Changelog
+  generate-changelog:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Update Changelog
-        uses: AlexxNB/chalogen@master
-        with:
-          title: My project changelog 
-      - name: Commit Changelog to repository
-        uses: stefanzweifel/git-auto-commit-action@v4.13.0
-        with:
-          commit_message: 'docs(Changelog): Update Changelog'
-          file_pattern: CHANGELOG.md
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: BobAnkh/auto-generate-changelog@master
+      with:
+        ACCESS_TOKEN: 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
+        PATH: 'CHANGELOG.md'
+        COMMIT_MESSAGE: 'docs(changelog): update release notes'
+        TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'
