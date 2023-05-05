@@ -13,7 +13,7 @@ jobs:
         fetch-depth: 0
     - uses: BobAnkh/auto-generate-changelog@master
       with:
-        ACCESS_TOKEN: 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
+        ACCESS_TOKEN: ${{ secrets.TF_API_TOKEN }}
         PATH: 'CHANGELOG.md'
         COMMIT_MESSAGE: 'docs(changelog): update release notes'
         TYPE: 'feat:Feature,fix:Bug Fixes,docs:Documentation,refactor:Refactor,perf:Performance Improvements'
